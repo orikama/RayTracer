@@ -1,0 +1,8 @@
+# Visual Studio files
+.vs/
+CMakeSettings.json
+
+# Cmake build
+build/
+out/
+cmake-build-debug/
