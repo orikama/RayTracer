@@ -17,10 +17,14 @@ struct vec3
 
     template<typename U>
     vec3<T>& operator=(const vec3<U>& v);
-    vec3<T>& operator+=(const vec3<T>& v);
-    vec3<T>& operator*=(const vec3<T>& v);
-    vec3<T>& operator*=(const T t);
-    vec3<T>& operator/=(const T t);
+    template<typename U>
+    vec3<T>& operator+=(const vec3<U>& v);
+    template<typename U>
+    vec3<T>& operator*=(const vec3<U>& v);
+    template<typename U>
+    vec3<T>& operator*=(const U t);
+    template<typename U>
+    vec3<T>& operator/=(const U t);
 };
 
 
@@ -59,36 +63,43 @@ vec3<T>& vec3<T>::operator=(const vec3<U>& v)
 }
 
 template<typename T>
-vec3<T>& vec3<T>::operator+=(const vec3<T>& v)
+template<typename U>
+vec3<T>& vec3<T>::operator+=(const vec3<U>& v)
 {
-    x += v.x;
-    y += v.y;
-    z += v.z;
+    x += static_cast<T>v.x;
+    y += static_cast<T>v.y;
+    z += static_cast<T>v.z;
     return *this;
 }
 
 template<typename T>
-vec3<T>& vec3<T>::operator*=(const vec3<T>& v)
+template<typename U>
+vec3<T>& vec3<T>::operator*=(const vec3<U>& v)
 {
-    x *= v.x;
-    y *= v.y;
-    z *= v.z;
+    x *= static_cast<T>v.x;
+    y *= static_cast<T>v.y;
+    z *= static_cast<T>v.z;
     return *this;
 }
 
 template<typename T>
-vec3<T>& vec3<T>::operator*=(const T t)
+template<typename U>
+vec3<T>& vec3<T>::operator*=(const U t)
 {
-    x *= t;
-    y *= t;
-    z *= t;
+    x *= static_cast<T>t;
+    y *= static_cast<T>t;
+    z *= static_cast<T>t;
     return *this;
 }
 
 template<typename T>
-vec3<T>& vec3<T>::operator/=(const T t)
+template<typename U>
+vec3<T>& vec3<T>::operator/=(const U t)
 {
-    return *this *= 1 / t;
+    x /= static_cast<T>t;
+    y /= static_cast<T>t;
+    z /= static_cast<T>t;
+    return *this;
 }
 
 

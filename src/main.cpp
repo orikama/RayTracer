@@ -12,8 +12,23 @@ const int g_ImageHeight = 100;
 const int g_Channels = 3;
 
 
+bool hit_sphere(const rt::vec3d& center, double radius, const rt::ray& r)
+{
+    rt::vec3d oc = r.origin - center;
+    auto a = rt::dot(r.direction, r.direction);
+    auto b = 2.0 * rt::dot(oc, r.direction);
+    auto c = rt::dot(oc, oc) - radius * radius;
+    auto discriminant = b * b - 4.0 * a * c;
+
+    return discriminant > 0;
+}
+
 auto ray_color(const rt::ray& r)
 {
+    if (hit_sphere(rt::vec3(0.0, 0.0, -1.0), 0.5, r)) {
+        return rt::vec3(1.0, 0.0, 0.0);
+    }
+
     rt::vec3d unit_direction = rt::unit_vector(r.direction);
     auto t = 0.5 * (unit_direction.y + 1.0);
 
@@ -26,7 +41,7 @@ int main()
     auto* img = new rt::vec3<uint8_t>[g_ImageHeight * g_ImageWidth];
 
     const auto lower_left_corner = rt::vec3(-2.0, -1.0, -1.0);
-    const auto horizontal = rt::vec3(4.0, -1.0, -1.0);
+    const auto horizontal = rt::vec3(4.0, 0.0, 0.0);
     const auto vertical = rt::vec3(0.0, 2.0, 0.0);
     const auto origin = rt::vec3(0.0, 0.0, 0.0);
 
