@@ -10,7 +10,10 @@ add_executable(InOneWeekend
                ${SRC_DIR}/vec3.hpp
                ${SRC_DIR}/ray.hpp
                ${SRC_DIR}/utility.hpp
+               ${SRC_DIR}/hittable.hpp
+               ${SRC_DIR}/hittable_list.hpp
+               ${SRC_DIR}/sphere.hpp
                ${SRC_DIR}/stb_image_write.cpp
                ${SRC_DIR}/stb_image_write.h)
 target_include_directories(InOneWeekend PRIVATE "${SRC_DIR}")
-target_compile_features(InOneWeekend PRIVATE cxx_std_17)
+target_compile_features(InOneWeekend PRIVATE cxx_std_20)

@@ -14,6 +14,7 @@ struct vec3
     vec3(T x, T y, T z);
 
     double length() const;
+    double length_squared() const;
 
     template<typename U>
     vec3<T>& operator=(const vec3<U>& v);
@@ -46,7 +47,13 @@ vec3<T>::vec3(T x, T y, T z)
 template<typename T>
 double vec3<T>::length() const
 {
-    return std::sqrt(x * x + y * y + z * z);
+    return std::sqrt(length_squared());
+}
+
+template<typename T>
+double vec3<T>::length_squared() const
+{
+    return x * x + y * y + z * z;
 }
 
 
@@ -103,105 +110,120 @@ vec3<T>& vec3<T>::operator/=(const U t)
 }
 
 
+template<typename T>
+inline vec3<T> operator+(const vec3<T>& v)
+{
+    return v;
+}
+
+template<typename T>
+inline vec3<T> operator-(const vec3<T>& v)
+{
+    return vec3<T>(-v.x,
+                   -v.y,
+                   -v.z);
+}
+
+
 // -- Binary arithmetic operators --
 
 template<typename T>
 inline vec3<T> operator+(const vec3<T>& v1, const vec3<T>& v2)
 {
-    return vec3(v1.x + v2.x,
-                v1.y + v2.y,
-                v1.z + v2.z);
+    return vec3<T>(v1.x + v2.x,
+                   v1.y + v2.y,
+                   v1.z + v2.z);
 }
 
 template<typename T>
 inline vec3<T> operator+(const vec3<T>& v, const T scalar)
 {
-    return vec3(v.x + scalar,
-                v.y + scalar,
-                v.z + scalar);
+    return vec3<T>(v.x + scalar,
+                   v.y + scalar,
+                   v.z + scalar);
 }
 
 template<typename T>
 inline vec3<T> operator+(const T scalar, const vec3<T>& v)
 {
-    return vec3(scalar + v.x,
-                scalar + v.y,
-                scalar + v.z);
+    return vec3<T>(scalar + v.x,
+                   scalar + v.y,
+                   scalar + v.z);
 }
 
 
 template<typename T>
 inline vec3<T> operator-(const vec3<T>& v1, const vec3<T>& v2)
 {
-    return vec3(v1.x - v2.x,
-                v1.y - v2.y,
-                v1.z - v2.z);
+    return vec3<T>(v1.x - v2.x,
+                   v1.y - v2.y,
+                   v1.z - v2.z);
 }
 
 template<typename T>
 inline vec3<T> operator-(const vec3<T>& v, const T scalar)
 {
-    return vec3(v.x - scalar,
-                v.y - scalar,
-                v.z - scalar);
+    return vec3<T>(v.x - scalar,
+                   v.y - scalar,
+                   v.z - scalar);
 }
 
 template<typename T>
 inline vec3<T> operator-(const T scalar, const vec3<T>& v)
 {
-    return vec3(scalar - v.x,
-                scalar - v.y,
-                scalar - v.z);
+    return vec3<T>(scalar - v.x,
+                   scalar - v.y,
+                   scalar - v.z);
 }
 
 
 template<typename T>
 inline vec3<T> operator*(const vec3<T>& v1, const vec3<T>& v2)
 {
-    return vec3(v1.x * v2.x,
-                v1.y * v2.y,
-                v1.z * v2.z);
+    return vec3<T>(v1.x * v2.x,
+                   v1.y * v2.y,
+                   v1.z * v2.z);
 }
 
 template<typename T>
 inline vec3<T> operator*(const vec3<T>& v, const T scalar)
 {
-    return vec3(v.x * scalar,
-                v.y * scalar,
-                v.z * scalar);
+    return vec3<T>(v.x * scalar,
+                   v.y * scalar,
+                   v.z * scalar);
 }
 
 template<typename T>
 inline vec3<T> operator*(const T scalar, const vec3<T>& v)
 {
-    return vec3(scalar * v.x,
-                scalar * v.y,
-                scalar * v.z);
+    return vec3<T>(scalar * v.x,
+                   scalar * v.y,
+                   scalar * v.z);
 }
 
 
 template<typename T>
 inline vec3<T> operator/(const vec3<T>& v1, const vec3<T>& v2)
 {
-    return vec3(v1.x / v2.x,
-                v1.y / v2.y,
-                v1.z / v2.z);
+    return vec3<T>(v1.x / v2.x,
+                   v1.y / v2.y,
+                   v1.z / v2.z);
 }
 
 template<typename T>
 inline vec3<T> operator/(const vec3<T>& v, const T scalar)
 {
-    return vec3(v.x / scalar,
-                v.y / scalar,
-                v.z / scalar);
+    return vec3<T>(v.x / scalar,
+                   v.y / scalar,
+                   v.z / scalar);
 }
 
 template<typename T>
 inline vec3<T> operator/(const T scalar, const vec3<T>& v)
 {
-    return vec3(scalar / v.x,
-                scalar / v.y,
-                scalar / v.z);
+    return vec3<T>(scalar / v.x,
+                   scalar / v.y,
+                   scalar / v.z);
 }
 
 } // namespace rt
