@@ -1,9 +1,12 @@
 #pragma once
 
+#include <memory>
+
 #include "vec3.hpp"
 #include "ray.hpp"
 #include "hittable.hpp"
-#include "utility.hpp"
+//#include "utility.hpp"
+//#include "material.hpp"
 
 namespace rt
 {
@@ -11,20 +14,23 @@ namespace rt
 class sphere : public hittable
 {
 public:
-    sphere(vec3d center, double radius);
+    sphere(vec3d center, double radius, std::shared_ptr<material> material_ptr);
 
     virtual bool hit(const ray& r, double t_min, double t_max, hit_record& rec) const override;
 
 public:
     vec3d center;
     double radius;
+    std::shared_ptr<material> material_ptr;
 };
 
 
-sphere::sphere(vec3d center, double radius)
+sphere::sphere(vec3d center, double radius, std::shared_ptr<material> material_ptr)
     : center(center)
     , radius(radius)
+    , material_ptr(material_ptr)
 {}
+
 
 bool sphere::hit(const ray& r, double t_min, double t_max, hit_record& rec) const
 {
@@ -47,6 +53,7 @@ bool sphere::hit(const ray& r, double t_min, double t_max, hit_record& rec) cons
             rec.p = r.at(t);
             auto outward_normal = (rec.p - center) / radius;
             rec.set_face_normal(r, outward_normal);
+            rec.material_ptr = material_ptr;
             return true;
         }
 
@@ -56,6 +63,7 @@ bool sphere::hit(const ray& r, double t_min, double t_max, hit_record& rec) cons
             rec.p = r.at(t);
             auto outward_normal = (rec.p - center) / radius;
             rec.set_face_normal(r, outward_normal);
+            rec.material_ptr = material_ptr;
             return true;
         }
     }

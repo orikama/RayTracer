@@ -3,6 +3,7 @@
 #include <cmath>
 #include <limits>
 #include <chrono>
+#include <memory>
 
 #include <stb_image_write.h>
 
@@ -11,17 +12,17 @@
 #include "utility.hpp"
 #include "hittable_list.hpp"
 #include "sphere.hpp"
-#include "random_generator.hpp"
 #include "camera.hpp"
+#include "material.hpp"
+
 
 const int g_ImageWidth = 800;
 const int g_ImageHeight = 400;
 const int g_Channels = 3;
 
 const int g_SamplesPerPixel = 100;
-const int g_MaxDepth = 50;
+const int g_MaxDepth = 5;
 
-rt::random_generator<double, std::minstd_rand> random_gen;
 
 rt::vec3d ray_color(const rt::ray& r, const rt::hittable& world, int depth)
 {
@@ -32,15 +33,13 @@ rt::vec3d ray_color(const rt::ray& r, const rt::hittable& world, int depth)
 
     // NOTE: 0.001 instead of 0.0, fixing "shadow acne" problem
     if (world.hit(r, 0.001, std::numeric_limits<double>::infinity(), record)) {
-        // NOTE: diffuse reflection
-        //auto target = record.p + record.normal + random_gen.random_vec3_in_unit_sphere();
-        // NOTE: hemispherical scattering
-        //auto target = record.p + random_gen.random_vec3_in_hemisphere(record.normal);
-        // NOTE: lambertian reflection
-        auto target = record.p + record.normal + random_gen.random_vec3_lambertian();
+        rt::ray scattered;
+        rt::vec3d attenuation;
 
-        return 0.5 * ray_color(rt::ray(record.p, target - record.p), world, depth - 1);
-        //return 0.5 * (record.normal + 1.0);
+        if (record.material_ptr->scatter(r, record, attenuation, scattered))
+            return attenuation * ray_color(scattered, world, depth - 1);
+
+        return rt::vec3(0.0, 0.0, 0.0);
     }
 
     auto unit_direction = rt::unit_vector(r.direction);
@@ -55,8 +54,22 @@ int main()
     auto* img = new rt::vec3<uint8_t>[g_ImageHeight * g_ImageWidth];
 
     rt::hittable_list world;
-    world.add(std::make_shared<rt::sphere>(rt::vec3(0.0, 0.0, -1.0), 0.5));
-    world.add(std::make_shared<rt::sphere>(rt::vec3(0.0, -100.5, -1.0), 100));
+    world.add(std::make_shared<rt::sphere>(rt::vec3(0.0, 0.0, -1.0),
+                                           0.5,
+                                           std::make_shared<rt::lambertian>(rt::vec3(0.7, 0.3, 0.3))));
+    world.add(std::make_shared<rt::sphere>(rt::vec3(0.0, -100.5, -1.0),
+                                           100,
+                                           std::make_shared<rt::lambertian>(rt::vec3(0.8, 0.8, 0.0))));
+
+    world.add(std::make_shared<rt::sphere>(rt::vec3(1.0, 0.0, -1.0),
+                                           0.5,
+                                           std::make_shared<rt::metal>(rt::vec3(0.8, 0.6, 0.2),
+                                                                       1.0)));
+    world.add(std::make_shared<rt::sphere>(rt::vec3(-1.0, 0.0, -1.0),
+                                           0.5,
+                                           std::make_shared<rt::metal>(rt::vec3(0.8, 0.8, 0.8),
+                                                                       0.3)));
+
 
     rt::camera cam;
 
@@ -71,8 +84,8 @@ int main()
             rt::vec3 color(0.0, 0.0, 0.0);
 
             for (int s = 0; s < g_SamplesPerPixel; ++s) {
-                double v = double(j + random_gen()) / g_ImageHeight;
-                double u = double(i + random_gen()) / g_ImageWidth;
+                double v = double(j + rt::s_random_gen()) / g_ImageHeight;
+                double u = double(i + rt::s_random_gen()) / g_ImageWidth;
 
                 rt::ray r = cam.get_ray(u, v);
                 color += ray_color(r, world, g_MaxDepth);

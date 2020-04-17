@@ -1,5 +1,7 @@
 #pragma once
 
+#include <memory>
+
 #include "vec3.hpp"
 #include "ray.hpp"
 #include "utility.hpp"
@@ -7,10 +9,13 @@
 namespace rt
 {
 
+class material;
+
 struct hit_record
 {
     vec3d p;    // hit point
     vec3d normal;
+    std::shared_ptr<material> material_ptr;
     double time;
     bool front_face;
 

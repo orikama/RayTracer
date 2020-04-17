@@ -14,6 +14,7 @@ add_executable(InOneWeekend
                ${SRC_DIR}/utility.hpp
                ${SRC_DIR}/hittable.hpp
                ${SRC_DIR}/hittable_list.hpp
+               ${SRC_DIR}/material.hpp
                ${SRC_DIR}/sphere.hpp
                ${SRC_DIR}/camera.hpp
                ${SRC_DIR}/random_generator.hpp

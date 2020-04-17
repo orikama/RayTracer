@@ -3,10 +3,16 @@
 #include <cmath>
 #include <limits>
 #include <numbers>
+
 #include "vec3.hpp"
+#include "random_generator.hpp"
+
 
 namespace rt
 {
+
+static rt::random_generator<double, std::minstd_rand> s_random_gen;
+
 
 template<typename T>
 vec3<T> unit_vector(const vec3<T>& v)
@@ -41,6 +47,12 @@ inline vec3<T> vector_sqrt(const vec3<T>& v)
     return vec3<T>(std::sqrt(v.x),
                    std::sqrt(v.y),
                    std::sqrt(v.z));
+}
+
+template<typename T>
+vec3<T> reflect(const vec3<T>& vector, const vec3<T>& normal)
+{
+    return vector - 2 * dot(vector, normal) * normal;
 }
 
 } // namespace rt
