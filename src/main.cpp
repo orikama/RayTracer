@@ -2,6 +2,7 @@
 #include <cstdint>
 #include <cmath>
 #include <limits>
+#include <chrono>
 
 #include <stb_image_write.h>
 
@@ -10,9 +11,12 @@
 #include "utility.hpp"
 #include "hittable_list.hpp"
 #include "sphere.hpp"
+#include "random_generator.hpp"
+#include "camera.hpp"
 
 const int g_ImageWidth = 800;
 const int g_ImageHeight = 400;
+const int g_SamplesPerPixel = 50;
 const int g_Channels = 3;
 
 
@@ -32,34 +36,43 @@ rt::vec3d ray_color(const rt::ray& r, const rt::hittable& world)
 
 int main()
 {
-    auto* img = new rt::vec3<uint8_t>[g_ImageHeight * g_ImageWidth];
+    rt::random_generator<double, std::minstd_rand> random_double;
 
-    const auto lower_left_corner = rt::vec3(-2.0, -1.0, -1.0);
-    const auto horizontal = rt::vec3(4.0, 0.0, 0.0);
-    const auto vertical = rt::vec3(0.0, 2.0, 0.0);
-    const auto origin = rt::vec3(0.0, 0.0, 0.0);
+    auto* img = new rt::vec3<uint8_t>[g_ImageHeight * g_ImageWidth];
 
     rt::hittable_list world;
     world.add(std::make_shared<rt::sphere>(rt::vec3(0.0, 0.0, -1.0), 0.5));
     world.add(std::make_shared<rt::sphere>(rt::vec3(0.0, -100.5, -1.0), 100));
-    
-    rt::ray r(origin, rt::vec3(0.0, 0.0, 0.0));
+
+    rt::camera cam;
+
+    auto start_t = std::chrono::high_resolution_clock::now();
 
     int index = 0;
+
     for (int j = g_ImageHeight - 1; j >= 0; --j) {
         std::cout << "\rScanlines remaining: " << j << ' ' << std::flush;
-        double v = double(j) / g_ImageHeight;
 
         for (int i = 0; i < g_ImageWidth; ++i) {
-            double u = double(i) / g_ImageWidth;
+            rt::vec3 color(0.0, 0.0, 0.0);
 
-            r.direction = lower_left_corner + u * horizontal + v * vertical;
-            rt::vec3 color = ray_color(r, world);
+            for (int s = 0; s < g_SamplesPerPixel; ++s) {
+                double v = double(j + random_double()) / g_ImageHeight;
+                double u = double(i + random_double()) / g_ImageWidth;
+
+                rt::ray r = cam.get_ray(u, v);
+                color += ray_color(r, world);
+            }
+
+            color /= g_SamplesPerPixel;
 
             img[index] = color * 255.999;
             ++index;
         }
     }
+
+    auto end_t = std::chrono::high_resolution_clock::now();
+    std::cout << '\n' << std::chrono::duration_cast<std::chrono::milliseconds>(end_t - start_t).count() << '\n';
 
     stbi_write_png("image.png", g_ImageWidth, g_ImageHeight, g_Channels, img, g_ImageWidth * g_Channels);
 
