@@ -16,15 +16,31 @@
 
 const int g_ImageWidth = 800;
 const int g_ImageHeight = 400;
-const int g_SamplesPerPixel = 50;
 const int g_Channels = 3;
 
+const int g_SamplesPerPixel = 100;
+const int g_MaxDepth = 50;
 
-rt::vec3d ray_color(const rt::ray& r, const rt::hittable& world)
+rt::random_generator<double, std::minstd_rand> random_gen;
+
+rt::vec3d ray_color(const rt::ray& r, const rt::hittable& world, int depth)
 {
+    if (depth <= 0)
+        return rt::vec3(0.0, 0.0, 0.0);
+
     rt::hit_record record;
-    if (world.hit(r, 0.0, std::numeric_limits<double>::infinity(), record)) {
-        return 0.5 * (record.normal + 1.0);
+
+    // NOTE: 0.001 instead of 0.0, fixing "shadow acne" problem
+    if (world.hit(r, 0.001, std::numeric_limits<double>::infinity(), record)) {
+        // NOTE: diffuse reflection
+        //auto target = record.p + record.normal + random_gen.random_vec3_in_unit_sphere();
+        // NOTE: hemispherical scattering
+        //auto target = record.p + random_gen.random_vec3_in_hemisphere(record.normal);
+        // NOTE: lambertian reflection
+        auto target = record.p + record.normal + random_gen.random_vec3_lambertian();
+
+        return 0.5 * ray_color(rt::ray(record.p, target - record.p), world, depth - 1);
+        //return 0.5 * (record.normal + 1.0);
     }
 
     auto unit_direction = rt::unit_vector(r.direction);
@@ -36,8 +52,6 @@ rt::vec3d ray_color(const rt::ray& r, const rt::hittable& world)
 
 int main()
 {
-    rt::random_generator<double, std::minstd_rand> random_double;
-
     auto* img = new rt::vec3<uint8_t>[g_ImageHeight * g_ImageWidth];
 
     rt::hittable_list world;
@@ -57,16 +71,16 @@ int main()
             rt::vec3 color(0.0, 0.0, 0.0);
 
             for (int s = 0; s < g_SamplesPerPixel; ++s) {
-                double v = double(j + random_double()) / g_ImageHeight;
-                double u = double(i + random_double()) / g_ImageWidth;
+                double v = double(j + random_gen()) / g_ImageHeight;
+                double u = double(i + random_gen()) / g_ImageWidth;
 
                 rt::ray r = cam.get_ray(u, v);
-                color += ray_color(r, world);
+                color += ray_color(r, world, g_MaxDepth);
             }
 
-            color /= g_SamplesPerPixel;
+            color /= g_SamplesPerPixel ;
 
-            img[index] = color * 255.999;
+            img[index] = rt::vector_sqrt(color) * 255.999;
             ++index;
         }
     }

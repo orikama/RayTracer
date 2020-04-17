@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cmath>
 #include <limits>
 #include <numbers>
 #include "vec3.hpp"
@@ -30,6 +31,16 @@ inline constexpr T radians(T degrees)
     static_assert(std::numeric_limits<T>::is_iec559);
 
     return degrees * std::numbers::pi_v<T> / 180;
+}
+
+template<typename T>
+inline vec3<T> vector_sqrt(const vec3<T>& v)
+{
+    static_assert(std::numeric_limits<T>::is_iec559);
+
+    return vec3<T>(std::sqrt(v.x),
+                   std::sqrt(v.y),
+                   std::sqrt(v.z));
 }
 
 } // namespace rt

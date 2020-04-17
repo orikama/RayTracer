@@ -9,7 +9,7 @@ namespace rt
 
 struct hit_record
 {
-    vec3d p;
+    vec3d p;    // hit point
     vec3d normal;
     double time;
     bool front_face;

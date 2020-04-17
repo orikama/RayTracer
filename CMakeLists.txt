@@ -1,7 +1,7 @@
 ﻿cmake_minimum_required(VERSION 3.13)
 project(RayTracer)
 
-find_package(OpenMP REQUIRED)
+#find_package(OpenMP REQUIRED)
 
 # Source files
 set(SRC_DIR "${CMAKE_CURRENT_SOURCE_DIR}/src")
@@ -21,4 +21,4 @@ add_executable(InOneWeekend
                ${SRC_DIR}/stb_image_write.h)
 target_include_directories(InOneWeekend PRIVATE "${SRC_DIR}")
 target_compile_features(InOneWeekend PRIVATE cxx_std_20)
-target_link_libraries(InOneWeekend PRIVATE OpenMP::OpenMP_CXX)
+#target_link_libraries(InOneWeekend PRIVATE OpenMP::OpenMP_CXX)
