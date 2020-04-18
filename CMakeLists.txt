@@ -22,4 +22,5 @@ add_executable(InOneWeekend
                ${SRC_DIR}/stb_image_write.h)
 target_include_directories(InOneWeekend PRIVATE "${SRC_DIR}")
 target_compile_features(InOneWeekend PRIVATE cxx_std_20)
+#set_target_properties(InOneWeekend PROPERTIES LINK_FLAGS "/PROFILE")
 #target_link_libraries(InOneWeekend PRIVATE OpenMP::OpenMP_CXX)
