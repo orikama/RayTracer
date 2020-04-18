@@ -68,4 +68,49 @@ public:
     double fuzziness;
 };
 
+
+class dielectic : public material
+{
+public:
+    dielectic(double refraction_index)
+        : refraction_index(refraction_index)
+    {}
+
+    virtual bool scatter(const ray& ray_in, const hit_record& record, vec3d& attenuation, ray& scattered) const override
+    {
+        attenuation = vec3(1.0, 1.0, 1.0);  // glass surface absorbs nothing
+        double etai_over_etat = record.front_face ? (1.0 / refraction_index) : refraction_index;
+
+        auto unit_direction = unit_vector(ray_in.direction);
+        double cos_theta = std::min(dot(-unit_direction, record.normal), 1.0);
+        double sin_theta = std::sqrt(1.0 - cos_theta * cos_theta);
+
+        vec3d reflect_or_refract;
+
+        if ((etai_over_etat * sin_theta > 1.0)
+            || (s_random_gen() < schlick(cos_theta, etai_over_etat))
+            )
+            reflect_or_refract = reflect(unit_direction, record.normal);
+        else
+            reflect_or_refract = refract(unit_direction, record.normal, etai_over_etat);
+
+        scattered = ray(record.p, reflect_or_refract);
+
+        return true;
+    }
+
+public:
+    double refraction_index;
+
+private:
+    double schlick(double cosine, double refraction_index) const
+    {
+        auto r0 = (1 - refraction_index) / (1 + refraction_index);
+        r0 *= r0;
+
+        return r0 + (1 - r0) * std::pow(1 - cosine, 5);
+    }
+};
+
+
 } // namespace rt

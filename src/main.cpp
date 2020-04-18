@@ -23,7 +23,7 @@ const int g_ImageWidth = 800;
 const int g_ImageHeight = 400;
 const int g_Channels = 3;
 
-const int g_SamplesPerPixel = 100;
+const int g_SamplesPerPixel = 400;
 const int g_MaxDepth = 50;
 
 const int g_NumThreads = 4;
@@ -87,7 +87,7 @@ int main()
     rt::hittable_list world;
     world.add(std::make_shared<rt::sphere>(rt::vec3(0.0, 0.0, -1.0),
                                            0.5,
-                                           std::make_shared<rt::lambertian>(rt::vec3(0.7, 0.3, 0.3))));
+                                           std::make_shared<rt::lambertian>(rt::vec3(0.1, 0.2, 0.5))));
     world.add(std::make_shared<rt::sphere>(rt::vec3(0.0, -100.5, -1.0),
                                            100,
                                            std::make_shared<rt::lambertian>(rt::vec3(0.8, 0.8, 0.0))));
@@ -95,11 +95,13 @@ int main()
     world.add(std::make_shared<rt::sphere>(rt::vec3(1.0, 0.0, -1.0),
                                            0.5,
                                            std::make_shared<rt::metal>(rt::vec3(0.8, 0.6, 0.2),
-                                                                       1.0)));
+                                                                       0.0)));
     world.add(std::make_shared<rt::sphere>(rt::vec3(-1.0, 0.0, -1.0),
                                            0.5,
-                                           std::make_shared<rt::metal>(rt::vec3(0.8, 0.8, 0.8),
-                                                                       0.3)));
+                                           std::make_shared<rt::dielectic>(1.5)));
+    world.add(std::make_shared<rt::sphere>(rt::vec3(-1.0, 0.0, -1.0),
+                                           -0.45,
+                                           std::make_shared<rt::dielectic>(1.5)));
 
 
     auto start_t = std::chrono::high_resolution_clock::now();

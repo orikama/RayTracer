@@ -5,8 +5,7 @@
 #include "vec3.hpp"
 #include "ray.hpp"
 #include "hittable.hpp"
-//#include "utility.hpp"
-//#include "material.hpp"
+
 
 namespace rt
 {

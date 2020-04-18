@@ -55,4 +55,15 @@ vec3<T> reflect(const vec3<T>& vector, const vec3<T>& normal)
     return vector - 2 * dot(vector, normal) * normal;
 }
 
+template<typename T>
+vec3<T> refract(const vec3<T>& uv, const vec3<T>& normal, double etai_over_etat)
+{
+    auto cos_theta = dot(-uv, normal);
+    auto r_out_parallel = etai_over_etat * (uv + cos_theta * normal);
+    auto r_out_perpend = -std::sqrt(1.0 - r_out_parallel.length_squared()) * normal;
+
+    return r_out_parallel + r_out_perpend;
+}
+
+
 } // namespace rt
