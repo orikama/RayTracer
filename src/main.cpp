@@ -81,8 +81,11 @@ void render(int shift, rt::vec3<uint8_t>* img, rt::hittable_list& world, rt::cam
 
 int main()
 {
-    auto* img = new rt::vec3<uint8_t>[g_ImageHeight * g_ImageWidth];
-    rt::camera cam;
+    const double aspect_ratio = double(g_ImageWidth) / g_ImageHeight;
+    rt::camera cam(rt::vec3(-2.0, 2.0, 1.0),
+                   rt::vec3(0.0, 0.0, -1.0),
+                   rt::vec3(0.0, 1.0, 0.0),
+                   30, aspect_ratio);
 
     rt::hittable_list world;
     world.add(std::make_shared<rt::sphere>(rt::vec3(0.0, 0.0, -1.0),
@@ -104,10 +107,10 @@ int main()
                                            std::make_shared<rt::dielectic>(1.5)));
 
 
-    auto start_t = std::chrono::high_resolution_clock::now();
-
-
+    auto* img = new rt::vec3<uint8_t>[g_ImageHeight * g_ImageWidth];
     std::vector<std::thread> threads;
+
+    auto start_t = std::chrono::high_resolution_clock::now();
 
     for (int i = 0; i < g_NumThreads; ++i)
         threads.emplace_back(render, i, img, world, cam);
@@ -116,11 +119,24 @@ int main()
         thread.join();
 
 
-    /*omp_set_num_threads(2);
+    auto end_t = std::chrono::high_resolution_clock::now();
+    std::cout << '\n' << std::chrono::duration_cast<std::chrono::milliseconds>(end_t - start_t).count() << '\n';
+
+    stbi_flip_vertically_on_write(true);
+    stbi_write_png("image.png", g_ImageWidth, g_ImageHeight, g_Channels, img, g_ImageWidth * g_Channels);
+
+    std::cout << "\nDone.\n";
+
+    delete[] img;
+
+    return 0;
+}
+
+/*omp_set_num_threads(2);
 #pragma omp parallel for collapse(2)
     for (int j = g_ImageHeight - 1; j >= 0; --j) {
         //std::cout << "\rScanlines remaining: " << j << ' ' << std::flush;
-        
+
         for (int i = 0; i < g_ImageWidth; ++i) {
             rt::vec3 color(0.0, 0.0, 0.0);
 
@@ -138,16 +154,3 @@ int main()
             img[j * g_ImageWidth + i] = rt::vector_sqrt(color) * 255.999;
         }
     }*/
-
-    auto end_t = std::chrono::high_resolution_clock::now();
-    std::cout << '\n' << std::chrono::duration_cast<std::chrono::milliseconds>(end_t - start_t).count() << '\n';
-
-    stbi_flip_vertically_on_write(true);
-    stbi_write_png("image.png", g_ImageWidth, g_ImageHeight, g_Channels, img, g_ImageWidth * g_Channels);
-
-    std::cout << "\nDone.\n";
-
-    delete[] img;
-
-    return 0;
-}
