@@ -58,6 +58,16 @@ public:
                     z);
     }
 
+    vec3<FloatType> random_vec3_in_unit_disk()
+    {
+        auto r = std::sqrt(random_number());
+        auto theta = random_number() * std::numbers::pi * 2;
+
+        return vec3<FloatType>(std::cos(theta),
+                               std::sin(theta),
+                               0.0);
+    }
+
     vec3<FloatType> random_vec3_in_unit_sphere()
     {
         auto u = random_number();

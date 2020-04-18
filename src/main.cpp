@@ -23,7 +23,7 @@ const int g_ImageWidth = 800;
 const int g_ImageHeight = 400;
 const int g_Channels = 3;
 
-const int g_SamplesPerPixel = 400;
+const int g_SamplesPerPixel = 100;
 const int g_MaxDepth = 50;
 
 const int g_NumThreads = 4;
@@ -81,11 +81,15 @@ void render(int shift, rt::vec3<uint8_t>* img, rt::hittable_list& world, rt::cam
 
 int main()
 {
+    const auto look_from = rt::vec3(3.0, 3.0, 2.0);
+    const auto look_at = rt::vec3(0.0, 0.0, -1.0);
+    const auto up = rt::vec3(0.0, 1.0, 0.0);
+    const auto dist_to_focus = (look_from - look_at).length();
+    const double aperture = 2.0;
     const double aspect_ratio = double(g_ImageWidth) / g_ImageHeight;
-    rt::camera cam(rt::vec3(-2.0, 2.0, 1.0),
-                   rt::vec3(0.0, 0.0, -1.0),
-                   rt::vec3(0.0, 1.0, 0.0),
-                   30, aspect_ratio);
+    rt::camera cam(look_from, look_at, up,
+                   20, aspect_ratio,
+                   aperture, dist_to_focus);
 
     rt::hittable_list world;
     world.add(std::make_shared<rt::sphere>(rt::vec3(0.0, 0.0, -1.0),
