@@ -171,9 +171,9 @@ void render(int shift, rt::vec3<uint8_t>* img, rt::hittable_list& world, rt::cam
 
 int main()
 {
-    const auto look_from = rt::vec3(13.0, 2.0, 3.0);
-    const auto look_at = rt::vec3(0.0, 0.0, 0.0);
-    const auto up = rt::vec3(0.0, 1.0, 0.0);
+    constexpr auto look_from = rt::vec3(13.0, 2.0, 3.0);
+    constexpr auto look_at = rt::vec3(0.0, 0.0, 0.0);
+    constexpr auto up = rt::vec3(0.0, 1.0, 0.0);
     const auto dist_to_focus = 10.0;
     const double aperture = 0.1;
     const double aspect_ratio = double(g_ImageWidth) / g_ImageHeight;

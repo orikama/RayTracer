@@ -10,34 +10,34 @@ struct vec3
 {
     T x, y, z;
 
-    vec3();
-    vec3(T x, T y, T z);
+    constexpr vec3();
+    constexpr vec3(T x, T y, T z);
 
     double length() const;
     double length_squared() const;
 
     template<typename U>
-    vec3<T>& operator=(const vec3<U>& v);
+    constexpr inline vec3<T>& operator=(const vec3<U>& v);
     template<typename U>
-    vec3<T>& operator+=(const vec3<U>& v);
+    constexpr inline vec3<T>& operator+=(const vec3<U>& v);
     template<typename U>
-    vec3<T>& operator*=(const vec3<U>& v);
+    constexpr inline vec3<T>& operator*=(const vec3<U>& v);
     template<typename U>
-    vec3<T>& operator*=(const U t);
+    constexpr inline vec3<T>& operator*=(const U t);
     template<typename U>
-    vec3<T>& operator/=(const U t);
+    constexpr inline vec3<T>& operator/=(const U t);
 };
 
 
 // --         Constructors        --
 
 template<typename T>
-vec3<T>::vec3()
+constexpr vec3<T>::vec3()
     : x(0), y(0), z(0)
 {}
 
 template<typename T>
-vec3<T>::vec3(T x, T y, T z)
+constexpr vec3<T>::vec3(T x, T y, T z)
     : x(x), y(y), z(z)
 {}
 
@@ -61,7 +61,7 @@ double vec3<T>::length_squared() const
 
 template<typename T>
 template<typename U>
-vec3<T>& vec3<T>::operator=(const vec3<U>& v)
+constexpr inline vec3<T>& vec3<T>::operator=(const vec3<U>& v)
 {
     x = static_cast<T>(v.x);
     y = static_cast<T>(v.y);
@@ -71,7 +71,7 @@ vec3<T>& vec3<T>::operator=(const vec3<U>& v)
 
 template<typename T>
 template<typename U>
-vec3<T>& vec3<T>::operator+=(const vec3<U>& v)
+constexpr inline vec3<T>& vec3<T>::operator+=(const vec3<U>& v)
 {
     x += static_cast<T>(v.x);
     y += static_cast<T>(v.y);
@@ -81,7 +81,7 @@ vec3<T>& vec3<T>::operator+=(const vec3<U>& v)
 
 template<typename T>
 template<typename U>
-vec3<T>& vec3<T>::operator*=(const vec3<U>& v)
+constexpr inline vec3<T>& vec3<T>::operator*=(const vec3<U>& v)
 {
     x *= static_cast<T>(v.x);
     y *= static_cast<T>(v.y);
@@ -91,7 +91,7 @@ vec3<T>& vec3<T>::operator*=(const vec3<U>& v)
 
 template<typename T>
 template<typename U>
-vec3<T>& vec3<T>::operator*=(const U t)
+constexpr inline vec3<T>& vec3<T>::operator*=(const U t)
 {
     x *= static_cast<T>(t);
     y *= static_cast<T>(t);
@@ -101,7 +101,7 @@ vec3<T>& vec3<T>::operator*=(const U t)
 
 template<typename T>
 template<typename U>
-vec3<T>& vec3<T>::operator/=(const U t)
+constexpr inline vec3<T>& vec3<T>::operator/=(const U t)
 {
     x /= static_cast<T>(t);
     y /= static_cast<T>(t);
@@ -128,7 +128,7 @@ inline vec3<T> operator-(const vec3<T>& v)
 // -- Binary arithmetic operators --
 
 template<typename T>
-inline vec3<T> operator+(const vec3<T>& v1, const vec3<T>& v2)
+constexpr inline vec3<T> operator+(const vec3<T>& v1, const vec3<T>& v2)
 {
     return vec3<T>(v1.x + v2.x,
                    v1.y + v2.y,
@@ -136,7 +136,7 @@ inline vec3<T> operator+(const vec3<T>& v1, const vec3<T>& v2)
 }
 
 template<typename T>
-inline vec3<T> operator+(const vec3<T>& v, const T scalar)
+constexpr inline vec3<T> operator+(const vec3<T>& v, const T scalar)
 {
     return vec3<T>(v.x + scalar,
                    v.y + scalar,
@@ -144,7 +144,7 @@ inline vec3<T> operator+(const vec3<T>& v, const T scalar)
 }
 
 template<typename T>
-inline vec3<T> operator+(const T scalar, const vec3<T>& v)
+constexpr inline vec3<T> operator+(const T scalar, const vec3<T>& v)
 {
     return vec3<T>(scalar + v.x,
                    scalar + v.y,
@@ -153,7 +153,7 @@ inline vec3<T> operator+(const T scalar, const vec3<T>& v)
 
 
 template<typename T>
-inline vec3<T> operator-(const vec3<T>& v1, const vec3<T>& v2)
+constexpr inline vec3<T> operator-(const vec3<T>& v1, const vec3<T>& v2)
 {
     return vec3<T>(v1.x - v2.x,
                    v1.y - v2.y,
@@ -161,7 +161,7 @@ inline vec3<T> operator-(const vec3<T>& v1, const vec3<T>& v2)
 }
 
 template<typename T>
-inline vec3<T> operator-(const vec3<T>& v, const T scalar)
+constexpr inline vec3<T> operator-(const vec3<T>& v, const T scalar)
 {
     return vec3<T>(v.x - scalar,
                    v.y - scalar,
@@ -169,7 +169,7 @@ inline vec3<T> operator-(const vec3<T>& v, const T scalar)
 }
 
 template<typename T>
-inline vec3<T> operator-(const T scalar, const vec3<T>& v)
+constexpr inline vec3<T> operator-(const T scalar, const vec3<T>& v)
 {
     return vec3<T>(scalar - v.x,
                    scalar - v.y,
@@ -178,7 +178,7 @@ inline vec3<T> operator-(const T scalar, const vec3<T>& v)
 
 
 template<typename T>
-inline vec3<T> operator*(const vec3<T>& v1, const vec3<T>& v2)
+constexpr inline vec3<T> operator*(const vec3<T>& v1, const vec3<T>& v2)
 {
     return vec3<T>(v1.x * v2.x,
                    v1.y * v2.y,
@@ -186,7 +186,7 @@ inline vec3<T> operator*(const vec3<T>& v1, const vec3<T>& v2)
 }
 
 template<typename T>
-inline vec3<T> operator*(const vec3<T>& v, const T scalar)
+constexpr inline vec3<T> operator*(const vec3<T>& v, const T scalar)
 {
     return vec3<T>(v.x * scalar,
                    v.y * scalar,
@@ -194,7 +194,7 @@ inline vec3<T> operator*(const vec3<T>& v, const T scalar)
 }
 
 template<typename T>
-inline vec3<T> operator*(const T scalar, const vec3<T>& v)
+constexpr inline vec3<T> operator*(const T scalar, const vec3<T>& v)
 {
     return vec3<T>(scalar * v.x,
                    scalar * v.y,
@@ -203,7 +203,7 @@ inline vec3<T> operator*(const T scalar, const vec3<T>& v)
 
 
 template<typename T>
-inline vec3<T> operator/(const vec3<T>& v1, const vec3<T>& v2)
+constexpr inline vec3<T> operator/(const vec3<T>& v1, const vec3<T>& v2)
 {
     return vec3<T>(v1.x / v2.x,
                    v1.y / v2.y,
@@ -211,7 +211,7 @@ inline vec3<T> operator/(const vec3<T>& v1, const vec3<T>& v2)
 }
 
 template<typename T>
-inline vec3<T> operator/(const vec3<T>& v, const T scalar)
+constexpr inline vec3<T> operator/(const vec3<T>& v, const T scalar)
 {
     return vec3<T>(v.x / scalar,
                    v.y / scalar,
@@ -219,7 +219,7 @@ inline vec3<T> operator/(const vec3<T>& v, const T scalar)
 }
 
 template<typename T>
-inline vec3<T> operator/(const T scalar, const vec3<T>& v)
+constexpr inline vec3<T> operator/(const T scalar, const vec3<T>& v)
 {
     return vec3<T>(scalar / v.x,
                    scalar / v.y,
