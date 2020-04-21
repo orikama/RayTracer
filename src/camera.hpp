@@ -6,17 +6,23 @@
 namespace rt
 {
 
+template<typename FloatType = float,
+    typename = std::enable_if_t<std::is_floating_point<FloatType>::value>
+>
 class camera
 {
+    using real_vec3 = vec3<FloatType>;
+    using ray_type = ray<FloatType>;
+
 public:
-    camera(vec3d look_from, vec3d look_at, vec3d up,
-           double vfov_degree, double aspect_ratio,
-           double aperture, double focus_distance)
+    camera(real_vec3 look_from, real_vec3 look_at, real_vec3 up,
+           FloatType vfov_degree, FloatType aspect_ratio,
+           FloatType aperture, FloatType focus_distance)
         : origin(look_from)
-        , lens_radius(aperture / 2.0)
+        , lens_radius(aperture / 2)
     {
         auto theta = radians(vfov_degree);
-        auto half_height = std::tan(theta / 2);
+        auto half_height = rt::tan(theta / 2);
         auto half_width = aspect_ratio * half_height;
 
         w = unit_vector(look_from - look_at);
@@ -29,7 +35,7 @@ public:
         vertical = 2 * half_height * focus_distance * v;
     }
 
-    ray get_ray(double s, double t) const
+    ray_type get_ray(FloatType s, FloatType t) const
     {
         // NOTE: tuple/pair instead of vec3 ?
         auto rd = lens_radius * s_random_gen.random_vec3_in_unit_disk();
@@ -43,12 +49,12 @@ public:
     }
 
 public:
-    vec3d origin;
-    vec3d lower_left_corner;
-    vec3d horizontal;
-    vec3d vertical;
-    vec3d u, v, w;
-    double lens_radius;
+    real_vec3 origin;
+    real_vec3 lower_left_corner;
+    real_vec3 horizontal;
+    real_vec3 vertical;
+    real_vec3 u, v, w;
+    FloatType lens_radius;
 };
 
 } //namespace rt

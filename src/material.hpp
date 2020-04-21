@@ -11,21 +11,38 @@
 namespace rt
 {
 
+template<typename FloatType,
+    typename = std::enable_if_t<std::is_floating_point<FloatType>::value>
+>
 class material
 {
+    using vector_type = vec3<FloatType>;
+    using ray_type = ray<FloatType>;
+    using hit_record_type = hit_record<FloatType>;
+
 public:
-    virtual bool scatter(const ray& ray_in, const hit_record& record, vec3d& attenuation, ray& scattered) const = 0;
+    virtual bool scatter(const ray_type& ray_in, const hit_record_type& record, vector_type& attenuation, ray_type& scattered) const = 0;
+
+//protected:
+    
 };
 
 
-class lambertian : public material
+template<typename FloatType,
+    typename = std::enable_if_t<std::is_floating_point<FloatType>::value>
+>
+class lambertian : public material<FloatType>
 {
+    using vector_type = vec3<FloatType>;
+    using ray_type = ray<FloatType>;
+    using hit_record_type = hit_record<FloatType>;
+
 public:
-    lambertian(const vec3d albedo)
+    lambertian(const vector_type albedo)
         : albedo(albedo)
     {}
 
-    virtual bool scatter(const ray& ray_in, const hit_record& record, vec3d& attenuation, ray& scattered) const override
+    virtual bool scatter(const ray_type& ray_in, const hit_record_type& record, vector_type& attenuation, ray_type& scattered) const override
     {
         // NOTE: diffuse reflection
         //auto target = record.p + record.normal + random_gen.random_vec3_in_unit_sphere();
@@ -35,77 +52,91 @@ public:
         //auto target = record.p + record.normal + rt::s_random_gen.random_vec3_lambertian();
 
         auto scatter_direction = record.normal + s_random_gen.random_vec3_lambertian();
-        scattered = ray(record.p, scatter_direction);
+        scattered = ray_type(record.p, scatter_direction);
         attenuation = albedo;
 
         return true;
     }
 
 public:
-    vec3d albedo;
+    vector_type albedo;
 };
 
 
-class metal : public material
+template<typename FloatType,
+    typename = std::enable_if_t<std::is_floating_point<FloatType>::value>
+>
+class metal : public material<FloatType>
 {
+    using vector_type = vec3<FloatType>;
+    using ray_type = ray<FloatType>;
+    using hit_record_type = hit_record<FloatType>;
+
 public:
-    metal(const vec3d albedo, double fuzziness)
+    metal(const vector_type albedo, FloatType fuzziness)
         : albedo(albedo)
-        , fuzziness(std::clamp(fuzziness, 0.0, 1.0))
+        , fuzziness(std::clamp<FloatType>(fuzziness, 0, 1))
     {}
 
-    virtual bool scatter(const ray& ray_in, const hit_record& record, vec3d& attenuation, ray& scattered) const override
+    virtual bool scatter(const ray_type& ray_in, const hit_record_type& record, vector_type& attenuation, ray_type& scattered) const override
     {
         auto reflected = reflect(unit_vector(ray_in.direction), record.normal);
-        scattered = ray(record.p, reflected + fuzziness * s_random_gen.random_vec3_in_unit_sphere());
+        scattered = ray_type(record.p, reflected + fuzziness * s_random_gen.random_vec3_in_unit_sphere());
         attenuation = albedo;
 
         return dot(scattered.direction, record.normal) > 0;
     }
 
 public:
-    vec3d albedo;
-    double fuzziness;
+    vector_type albedo;
+    FloatType fuzziness;
 };
 
 
-class dielectic : public material
+template<typename FloatType,
+    typename = std::enable_if_t<std::is_floating_point<FloatType>::value>
+>
+class dielectic : public material<FloatType>
 {
+    using vector_type = vec3<FloatType>;
+    using ray_type = ray<FloatType>;
+    using hit_record_type = hit_record<FloatType>;
+
 public:
-    dielectic(double refraction_index)
+    dielectic(FloatType refraction_index)
         : refraction_index(refraction_index)
     {}
 
-    virtual bool scatter(const ray& ray_in, const hit_record& record, vec3d& attenuation, ray& scattered) const override
+    virtual bool scatter(const ray_type& ray_in, const hit_record_type& record, vector_type& attenuation, ray_type& scattered) const override
     {
-        attenuation = vec3(1.0, 1.0, 1.0);  // glass surface absorbs nothing
-        double etai_over_etat = record.front_face ? (1.0 / refraction_index) : refraction_index;
+        attenuation = vector_type(1, 1, 1);  // glass surface absorbs nothing
+        FloatType etai_over_etat = record.front_face ? (1 / refraction_index) : refraction_index;
 
         auto unit_direction = unit_vector(ray_in.direction);
-        double cos_theta = std::min(dot(-unit_direction, record.normal), 1.0);
-        double sin_theta = std::sqrt(1.0 - cos_theta * cos_theta);
+        FloatType cos_theta = std::min<FloatType>(dot(-unit_direction, record.normal), 1);
+        FloatType sin_theta = std::sqrt(1 - cos_theta * cos_theta);
 
-        vec3d reflect_or_refract;
+        vector_type reflect_or_refract;
 
-        if ((etai_over_etat * sin_theta > 1.0)
+        if ((etai_over_etat * sin_theta > 1)
             || (s_random_gen() < schlick(cos_theta, etai_over_etat))
             )
             reflect_or_refract = reflect(unit_direction, record.normal);
         else
             reflect_or_refract = refract(unit_direction, record.normal, etai_over_etat);
 
-        scattered = ray(record.p, reflect_or_refract);
+        scattered = ray_type(record.p, reflect_or_refract);
 
         return true;
     }
 
 public:
-    double refraction_index;
+    FloatType refraction_index;
 
 private:
-    double schlick(double cosine, double refraction_index) const
+    FloatType schlick(FloatType cosine, FloatType refraction_index) const
     {
-        auto r0 = (1 - refraction_index) / (1 + refraction_index);
+        FloatType r0 = (1 - refraction_index) / (1 + refraction_index);
         r0 *= r0;
 
         return r0 + (1 - r0) * std::pow(1 - cosine, 5);

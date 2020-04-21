@@ -13,8 +13,8 @@ struct vec3
     constexpr vec3();
     constexpr vec3(T x, T y, T z);
 
-    double length() const;
-    double length_squared() const;
+    T length() const;
+    T length_squared() const;
 
     template<typename U>
     constexpr inline vec3<T>& operator=(const vec3<U>& v);
@@ -45,13 +45,13 @@ constexpr vec3<T>::vec3(T x, T y, T z)
 // --      Utility functions      --
 
 template<typename T>
-double vec3<T>::length() const
+T vec3<T>::length() const
 {
     return std::sqrt(length_squared());
 }
 
 template<typename T>
-double vec3<T>::length_squared() const
+T vec3<T>::length_squared() const
 {
     return x * x + y * y + z * z;
 }

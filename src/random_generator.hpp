@@ -4,11 +4,12 @@
 #include <random>
 
 #include "vec3.hpp"
+#include "utility.hpp"
 
 namespace rt
 {
 
-template<typename FloatType = double,
+template<typename FloatType = float,
     class Generator = std::mt19937,
     class = std::enable_if_t<std::is_floating_point<FloatType>::value>
 >
@@ -49,23 +50,23 @@ public:
 
     vec3<FloatType> random_vec3_lambertian()
     {
-        auto a = random_number() * std::numbers::pi * 2; // interval [0, 2*PI]
+        auto a = random_number() * std::numbers::pi_v<FloatType> * 2; // interval [0, 2*PI]
         auto z = random_number() * 2 - 1;
-        auto r = std::sqrt(1 - z * z);
+        auto r = rt::sqrt(1 - z * z);
 
-        return vec3(r * std::cos(a),
-                    r * std::sin(a),
+        return vec3(r * rt::cos(a),
+                    r * rt::sin(a),
                     z);
     }
 
     vec3<FloatType> random_vec3_in_unit_disk()
     {
-        auto r = std::sqrt(random_number());
-        auto theta = random_number() * std::numbers::pi * 2;
+        auto r = rt::sqrt(random_number());
+        auto theta = random_number() * std::numbers::pi_v<FloatType> * 2;
 
-        return vec3<FloatType>(std::cos(theta),
-                               std::sin(theta),
-                               0.0);
+        return vec3<FloatType>(rt::cos(theta),
+                               rt::sin(theta),
+                               0);
     }
 
     vec3<FloatType> random_vec3_in_unit_sphere()
@@ -75,7 +76,7 @@ public:
         auto magnitude = vector.length();
 
         vector /= magnitude;
-        vector *= std::cbrt(u); // NOTE: non generic
+        vector *= rt::cbrt(u);
 
         return vector;
     }
@@ -84,7 +85,7 @@ public:
     {
         auto vector = random_vec3_in_unit_sphere();
 
-        if (dot(vector, normal) > 0.0)
+        if (dot(vector, normal) > 0)
             return vector;
         return -vector;
     }
