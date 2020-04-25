@@ -1,7 +1,9 @@
 #pragma once
 
+#include "rt_math.hpp"
 #include "vec3.hpp"
 #include "ray.hpp"
+
 
 namespace rt
 {
@@ -11,11 +13,11 @@ template<typename FloatType = float,
 >
 class camera
 {
-    using real_vec3 = vec3<FloatType>;
+    using vec3_fp = vec3<FloatType>;
     using ray_type = ray<FloatType>;
 
 public:
-    camera(real_vec3 look_from, real_vec3 look_at, real_vec3 up,
+    camera(vec3_fp look_from, vec3_fp look_at, vec3_fp up,
            FloatType vfov_degree, FloatType aspect_ratio,
            FloatType aperture, FloatType focus_distance)
         : origin(look_from)
@@ -45,15 +47,15 @@ public:
         //return ray(origin, lower_left_corner + u * horizontal + v * vertical - origin - offset);
 
         // NOTE: can be optimized a little?
-        return ray(origin + offset, lower_left_corner + s * horizontal + t * vertical - origin - offset);
+        return ray_type(origin + offset, lower_left_corner + s * horizontal + t * vertical - origin - offset);
     }
 
 public:
-    real_vec3 origin;
-    real_vec3 lower_left_corner;
-    real_vec3 horizontal;
-    real_vec3 vertical;
-    real_vec3 u, v, w;
+    vec3_fp origin;
+    vec3_fp lower_left_corner;
+    vec3_fp horizontal;
+    vec3_fp vertical;
+    vec3_fp u, v, w;
     FloatType lens_radius;
 };
 

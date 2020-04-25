@@ -19,14 +19,16 @@
 #include <vector>
 #include <mutex>
 
-const int g_ImageWidth = 800;
-const int g_ImageHeight = 400;
+const int g_ImageWidth = 400;
+const int g_ImageHeight = 200;
 const int g_Channels = 3;
 
 const int g_SamplesPerPixel = 50;
 const int g_MaxDepth = 50;
 
 const int g_NumThreads = 4;
+
+using fp_type = double;
 
 
 class safe_cout
@@ -56,111 +58,114 @@ private:
 safe_cout g_Info;
 
 
-template<typename FloatType>
-rt::hittable_list<FloatType> random_scene()
+rt::hittable_list<fp_type> random_scene()
 {
-    rt::hittable_list<FloatType> world;
+    rt::random_generator<fp_type, std::minstd_rand> random_gen;
+    std::uniform_real_distribution<fp_type> dist_0_05(0, 0.5);
+    std::uniform_real_distribution<fp_type> dist_05_1(0.5, 1);
 
-    world.add(std::make_shared<rt::sphere<FloatType>>(rt::vec3<FloatType>(0.0, -1000.0, 0.0),
-                                           1000,
-                                           std::make_shared<rt::lambertian<FloatType>>(rt::vec3<FloatType>(0.5, 0.5, 0.5))));
+    rt::hittable_list<fp_type> world;
+
+    world.add(std::make_shared<rt::sphere<fp_type>>(rt::vec3<fp_type>(0.0, -1000.0, 0.0),
+                                                    1000,
+                                                    std::make_shared<rt::lambertian<fp_type>>(rt::vec3<fp_type>(0.5, 0.5, 0.5))));
 
     int i = 1;
     for (int a = -11; a < 11; ++a) {
         for (int b = -11; b < 11; ++b) {
-            FloatType choose_material = rt::s_random_gen();
-            rt::vec3<FloatType> center(a + 0.9 * rt::s_random_gen(), 0.2, b + 0.9 * rt::s_random_gen());
+            fp_type choose_material = random_gen();
+            rt::vec3<fp_type> center(a + 0.9 * random_gen(), 0.2, b + 0.9 * random_gen());
 
-            if ((center - rt::vec3<FloatType>(4.0, 0.2, 0.0)).length() > 0.9) {
+            if ((center - rt::vec3<fp_type>(4.0, 0.2, 0.0)).length() > 0.9) {
                 // diffuse
                 if (choose_material < 0.5) {
-                    rt::vec3<FloatType> albedo = rt::s_random_gen.random_vec3() * rt::s_random_gen.random_vec3();
-                    world.add(std::make_shared<rt::sphere<FloatType>>(center,
-                                                           0.2,
-                                                           std::make_shared<rt::lambertian<FloatType>>(albedo)));
+                    rt::vec3<fp_type> albedo = random_gen.random_vec3() * random_gen.random_vec3();
+                    world.add(std::make_shared<rt::sphere<fp_type>>(center,
+                                                                    0.2,
+                                                                    std::make_shared<rt::lambertian<fp_type>>(albedo)));
                 }
                 // metal
                 else if (choose_material < 0.75) {
-                    rt::vec3<FloatType> albedo = rt::s_random_gen.random_vec3() / static_cast<FloatType>(2.0 + 0.5); // interval [0.5, 1.0]
-                    FloatType fuzz = rt::s_random_gen() / 2.0; // interval [0.0, 0.5]
-                    world.add(std::make_shared<rt::sphere<FloatType>>(center,
-                                                           0.2,
-                                                           std::make_shared<rt::metal<FloatType>>(albedo, fuzz)));
+                    rt::vec3<fp_type> albedo = random_gen.random_vec3(dist_05_1);
+                    fp_type fuzz = random_gen(dist_0_05);
+                    world.add(std::make_shared<rt::sphere<fp_type>>(center,
+                                                                    0.2,
+                                                                    std::make_shared<rt::metal<fp_type>>(albedo, fuzz)));
                 }
                 // glass
                 else {
-                    world.add(std::make_shared<rt::sphere<FloatType>>(center,
-                                                           0.2,
-                                                           std::make_shared<rt::dielectic<FloatType>>(1.5)));
+                    world.add(std::make_shared<rt::sphere<fp_type>>(center,
+                                                                    0.2,
+                                                                    std::make_shared<rt::dielectic<fp_type>>(1.5)));
                 }
             }
         }
     }
 
-    world.add(std::make_shared<rt::sphere<FloatType>>(rt::vec3<FloatType>(0.0, 1.0, 0.0),
-                                           1.0,
-                                           std::make_shared<rt::dielectic<FloatType>>(1.5)));
+    world.add(std::make_shared<rt::sphere<fp_type>>(rt::vec3<fp_type>(0.0, 1.0, 0.0),
+                                                    1.0,
+                                                    std::make_shared<rt::dielectic<fp_type>>(1.5)));
 
-    world.add(std::make_shared<rt::sphere<FloatType>>(rt::vec3<FloatType>(-4.0, 1.0, 0.0),
-                                           1.0,
-                                           std::make_shared<rt::lambertian<FloatType>>(rt::vec3<FloatType>(0.4, 0.2, 0.1))));
+    world.add(std::make_shared<rt::sphere<fp_type>>(rt::vec3<fp_type>(-4.0, 1.0, 0.0),
+                                                    1.0,
+                                                    std::make_shared<rt::lambertian<fp_type>>(rt::vec3<fp_type>(0.4, 0.2, 0.1))));
 
-    world.add(std::make_shared<rt::sphere<FloatType>>(rt::vec3<FloatType>(4.0, 1.0, 0.0),
-                                           1.0,
-                                           std::make_shared<rt::metal<FloatType>>(rt::vec3<FloatType>(0.7, 0.6, 0.5),
-                                                                       0.0)));
+    world.add(std::make_shared<rt::sphere<fp_type>>(rt::vec3<fp_type>(4.0, 1.0, 0.0),
+                                                    1.0,
+                                                    std::make_shared<rt::metal<fp_type>>(rt::vec3<fp_type>(0.7, 0.6, 0.5),
+                                                                                         0.0)));
 
     return world;
 }
 
-template<typename FloatType>
-rt::vec3<FloatType> ray_color(const rt::ray<FloatType>& r, const rt::hittable<FloatType>& world, int depth)
+
+rt::vec3<fp_type> ray_color(const rt::ray<fp_type>& r, const rt::hittable<fp_type>& world, int depth)
 {
     if (depth <= 0)
-        return rt::vec3<FloatType>(0, 0, 0);
+        return rt::vec3<fp_type>(0, 0, 0);
 
-    rt::hit_record<FloatType> record;
+    rt::hit_record<fp_type> record;
 
     // NOTE: 0.001 instead of 0.0, fixing "shadow acne" problem
-    if (world.hit(r, 0.001, std::numeric_limits<FloatType>::infinity(), record)) {
-        rt::ray<FloatType> scattered;
-        rt::vec3<FloatType> attenuation;
+    if (world.hit(r, 0.001, std::numeric_limits<fp_type>::infinity(), record)) {
+        rt::ray<fp_type> scattered;
+        rt::vec3<fp_type> attenuation;
 
         if (record.material_ptr->scatter(r, record, attenuation, scattered))
             return attenuation * ray_color(scattered, world, depth - 1);
 
-        return rt::vec3<FloatType>(0, 0, 0);
+        return rt::vec3<fp_type>(0, 0, 0);
     }
 
     auto unit_direction = rt::unit_vector(r.direction);
-    FloatType t = 0.5 * (unit_direction.y + 1);
+    fp_type t = 0.5 * (unit_direction.y + 1);
 
-    return (1 - t) * rt::vec3<FloatType>(1, 1, 1) + t * rt::vec3<FloatType>(0.5, 0.7, 1.0);
+    return (1 - t) * rt::vec3<fp_type>(1, 1, 1) + t * rt::vec3<fp_type>(0.5, 0.7, 1.0);
 }
 
+
 // TODO: random generator is not thread safe
-template<typename FloatType>
-void render(int shift, rt::vec3<uint8_t>* img, rt::hittable_list<FloatType>& world, rt::camera<FloatType>& cam)
+void render(int shift, rt::vec3<uint8_t>* img, rt::hittable_list<fp_type>& world, rt::camera<fp_type>& cam)
 {
     int index = 1;
     for (int j = g_ImageHeight - 1; j >= 0; --j) {
         //std::cout << "\rScanlines remaining: " << j << ' ' << std::flush;
 
-        for (int i = shift; i < g_ImageWidth; i+=g_NumThreads) {
-            rt::vec3<FloatType> color(0, 0, 0);
+        for (int i = shift; i < g_ImageWidth; i += g_NumThreads) {
+            rt::vec3<fp_type> color(0, 0, 0);
 
             for (int s = 0; s < g_SamplesPerPixel; ++s) {
-                FloatType v = FloatType(j + rt::s_random_gen()) / g_ImageHeight;
-                FloatType u = FloatType(i + rt::s_random_gen()) / g_ImageWidth;
+                fp_type v = fp_type(j + rt::s_random_gen()) / g_ImageHeight;
+                fp_type u = fp_type(i + rt::s_random_gen()) / g_ImageWidth;
 
-                rt::ray<FloatType> r = cam.get_ray(u, v);
+                auto r = cam.get_ray(u, v);
                 color += ray_color(r, world, g_MaxDepth);
             }
 
             color /= g_SamplesPerPixel;
 
             //img[index++] = rt::vector_sqrt(color) * 255.999;
-            img[j * g_ImageWidth + i] = rt::vector_sqrt(color) * static_cast<FloatType>(255.999);
+            img[j * g_ImageWidth + i] = rt::vector_sqrt(color) * static_cast<fp_type>(255.999);
 
             ++index;
             if (index == 400 + shift * 10) {
@@ -174,17 +179,18 @@ void render(int shift, rt::vec3<uint8_t>* img, rt::hittable_list<FloatType>& wor
 
 int main()
 {
-    constexpr auto look_from = rt::vec3<float>(13.0, 2.0, 3.0);
-    constexpr auto look_at = rt::vec3<float>(0.0, 0.0, 0.0);
-    constexpr auto up = rt::vec3<float>(0.0, 1.0, 0.0);
-    const auto dist_to_focus = 10.0f;
-    const auto aperture = 0.1f;
-    const auto aspect_ratio = float(g_ImageWidth) / g_ImageHeight;
-    rt::camera<float> cam(look_from, look_at, up,
-                   20.0, aspect_ratio,
-                   aperture, dist_to_focus);
+    constexpr auto look_from = rt::vec3<fp_type>(13.0, 2.0, 3.0);
+    constexpr auto look_at = rt::vec3<fp_type>(0.0, 0.0, 0.0);
+    constexpr auto up = rt::vec3<fp_type>(0.0, 1.0, 0.0);
+    const auto dist_to_focus = static_cast<fp_type>(10.0);
+    const auto aperture = static_cast<fp_type>(0.1);
+    const auto aspect_ratio = fp_type(g_ImageWidth) / g_ImageHeight;
 
-    auto world = random_scene<float>();
+    rt::camera<fp_type> cam(look_from, look_at, up,
+                            20.0, aspect_ratio,
+                            aperture, dist_to_focus);
+
+    auto world = random_scene();
 
     auto* img = new rt::vec3<uint8_t>[g_ImageHeight * g_ImageWidth];
 
@@ -196,7 +202,7 @@ int main()
     auto start_t = std::chrono::high_resolution_clock::now();
 
     for (int i = 0; i < g_NumThreads; ++i)
-        threads.emplace_back(render<float>, i, img, world, cam);
+        threads.emplace_back(render, i, img, world, cam);
 
     for (auto& thread : threads)
         thread.join();

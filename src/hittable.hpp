@@ -4,7 +4,6 @@
 
 #include "vec3.hpp"
 #include "ray.hpp"
-#include "utility.hpp"
 
 
 namespace rt

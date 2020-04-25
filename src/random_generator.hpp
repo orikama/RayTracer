@@ -15,15 +15,31 @@ template<typename FloatType = float,
 >
 class random_generator
 {
+    using fp_distribution = std::uniform_real_distribution<FloatType>;
+
 public:
     explicit random_generator(Generator&& engine = Generator{ std::random_device{}() })
         : m_engine(std::move(engine))
         , m_distribution()
+        , m_dist_0_2pi(0, std::numbers::pi_v<FloatType> * 2)
+        , m_dist_minus1_1(-1, 1)
     {}
 
     FloatType operator()()
     {
         return random_number();
+    }
+
+    FloatType operator()(FloatType min, FloatType max)
+    {
+        fp_distribution dist(min, max);
+
+        return random_number(dist);
+    }
+
+    FloatType operator()(const fp_distribution& dist)
+    {
+        return random_number(dist);
     }
 
     constexpr FloatType min() const
@@ -48,10 +64,26 @@ public:
                                random_number());
     }
 
+    vec3<FloatType> random_vec3(FloatType min, FloatType max)
+    {
+        fp_distribution dist(min, max);
+
+        return vec3<FloatType>(random_number(dist),
+                               random_number(dist),
+                               random_number(dist));
+    }
+
+    vec3<FloatType> random_vec3(const fp_distribution& dist)
+    {
+        return vec3<FloatType>(random_number(dist),
+                               random_number(dist),
+                               random_number(dist));
+    }
+
     vec3<FloatType> random_vec3_lambertian()
     {
-        auto a = random_number() * std::numbers::pi_v<FloatType> * 2; // interval [0, 2*PI]
-        auto z = random_number() * 2 - 1;
+        auto a = random_number(m_dist_0_2pi);
+        auto z = random_number(m_dist_minus1_1);
         auto r = rt::sqrt(1 - z * z);
 
         return vec3(r * rt::cos(a),
@@ -62,7 +94,7 @@ public:
     vec3<FloatType> random_vec3_in_unit_disk()
     {
         auto r = rt::sqrt(random_number());
-        auto theta = random_number() * std::numbers::pi_v<FloatType> * 2;
+        auto theta = random_number(m_dist_0_2pi);
 
         return vec3<FloatType>(rt::cos(theta),
                                rt::sin(theta),
@@ -91,13 +123,23 @@ public:
     }
 
 private:
-    FloatType random_number()
+    inline FloatType random_number()
     {
         return m_distribution(m_engine);
     }
 
+    inline FloatType random_number(const fp_distribution& dist)
+    {
+        return dist(m_engine);
+    }
+
     Generator m_engine;
-    std::uniform_real_distribution<FloatType> m_distribution;
+    const fp_distribution m_distribution;
+
+    // interval [0, 2*PI]
+    const fp_distribution m_dist_0_2pi;   // for random_vec3_lambertian() and random_vec3_in_unit_disk() only
+    // interval [-1, 1]
+    const fp_distribution m_dist_minus1_1;   // for random_vec3_lambertian() only
 };
 
 } // namespace rt

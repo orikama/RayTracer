@@ -12,6 +12,7 @@ add_executable(InOneWeekend
                ${SRC_DIR}/vec3.hpp
                ${SRC_DIR}/ray.hpp
                ${SRC_DIR}/utility.hpp
+               ${SRC_DIR}/rt_math.hpp
                ${SRC_DIR}/hittable.hpp
                ${SRC_DIR}/hittable_list.hpp
                ${SRC_DIR}/material.hpp

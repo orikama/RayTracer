@@ -2,6 +2,7 @@
 
 #include <memory>
 
+#include "rt_math.hpp"
 #include "vec3.hpp"
 #include "ray.hpp"
 #include "hittable.hpp"
@@ -15,12 +16,12 @@ template<typename FloatType,
 >
 class sphere : public hittable<FloatType>
 {
-    using real_vec3 = vec3<FloatType>;
+    using vec3_fp = vec3<FloatType>;
     using ray_type = ray<FloatType>;
     using material_type = material<FloatType>;
 
 public:
-    sphere(real_vec3 center, FloatType radius, std::shared_ptr<material_type> material_ptr)
+    sphere(vec3_fp center, FloatType radius, std::shared_ptr<material_type> material_ptr)
         : center(center)
         , radius(radius)
         , material_ptr(material_ptr)
@@ -35,7 +36,7 @@ public:
         auto discriminant = half_b * half_b - a * c;
 
         if (discriminant > 0) {
-            auto root = std::sqrt(discriminant);
+            auto root = rt::sqrt(discriminant);
             auto t = (-half_b - root) / a;
 
             /*if (!(t < t_max && t > t_min)) {
@@ -66,7 +67,7 @@ public:
     }
 
 public:
-    real_vec3 center;
+    vec3_fp center;
     FloatType radius;
     std::shared_ptr<material_type> material_ptr;
 };
