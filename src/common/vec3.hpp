@@ -69,6 +69,16 @@ constexpr inline T vec3<T>::length_squared() const
     return x * x + y * y + z * z;
 }
 
+template<typename T>
+inline vec3<T> vector_sqrt(const vec3<T>& v)
+{
+    static_assert(std::numeric_limits<T>::is_iec559);
+
+    return vec3<T>(rt::sqrt(v.x),
+                   rt::sqrt(v.y),
+                   rt::sqrt(v.z));
+}
+
 
 template<typename T>
 constexpr inline vec3<T> unit_vector(const vec3<T>& v)

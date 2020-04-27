@@ -23,7 +23,7 @@ public:
         : origin(look_from)
         , lens_radius(aperture / 2)
     {
-        auto theta = radians(vfov_degree);
+        auto theta = rt::radians(vfov_degree);
         auto half_height = rt::tan(theta / 2);
         auto half_width = aspect_ratio * half_height;
 

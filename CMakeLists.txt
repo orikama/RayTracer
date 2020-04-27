@@ -28,5 +28,17 @@ add_executable(InOneWeekend
                ${SRC_COMMON})
 target_include_directories(InOneWeekend PRIVATE "${SRC_DIR}")
 target_compile_features(InOneWeekend PRIVATE cxx_std_20)
-#set_target_properties(InOneWeekend PROPERTIES LINK_FLAGS "/PROFILE")
 #target_link_libraries(InOneWeekend PRIVATE OpenMP::OpenMP_CXX)
+
+
+set(SRC_InOneWeekendAdvanced_DIR "${SRC_DIR}/InOneWeekendAdvanced")
+
+add_executable(InOneWeekendAdvanced
+               ${SRC_InOneWeekendAdvanced_DIR}/main.cpp
+               ${SRC_InOneWeekendAdvanced_DIR}/hittable.hpp
+               ${SRC_InOneWeekendAdvanced_DIR}/hittable_list.hpp
+               ${SRC_InOneWeekendAdvanced_DIR}/material.hpp
+               ${SRC_InOneWeekendAdvanced_DIR}/sphere.hpp
+               ${SRC_COMMON})
+target_include_directories(InOneWeekendAdvanced PRIVATE "${SRC_DIR}")
+target_compile_features(InOneWeekendAdvanced PRIVATE cxx_std_20)

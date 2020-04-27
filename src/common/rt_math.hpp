@@ -2,6 +2,7 @@
 
 #include <cmath>
 #include <limits>
+#include <numbers>
 
 
 namespace rt
@@ -72,6 +73,15 @@ inline T pow(const T value, const T power)
         return std::powf(value, power);
     else
         return std::pow(value, power);
+}
+
+
+template<typename T>
+inline constexpr T radians(T degrees)
+{
+    static_assert(std::numeric_limits<T>::is_iec559);
+
+    return degrees * std::numbers::pi_v<T> / 180;
 }
 
 } // namespace rt
