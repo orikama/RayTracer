@@ -1,6 +1,6 @@
 #pragma once
 
-#include "vec3.hpp"
+#include "common/vec3.hpp"
 
 
 namespace rt

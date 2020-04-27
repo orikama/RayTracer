@@ -3,24 +3,29 @@ project(RayTracer)
 
 #find_package(OpenMP REQUIRED)
 
-# Source files
+# Source files path
 set(SRC_DIR "${CMAKE_CURRENT_SOURCE_DIR}/src")
 
-# Executable definition and properties
+set(SRC_COMMON_DIR "${SRC_DIR}/common")
+set(SRC_COMMON ${SRC_COMMON_DIR}/camera.hpp
+               ${SRC_COMMON_DIR}/ray.hpp
+               ${SRC_COMMON_DIR}/vec3.hpp
+               ${SRC_COMMON_DIR}/rt_math.hpp
+               ${SRC_COMMON_DIR}/random_generator.hpp
+               ${SRC_COMMON_DIR}/utility.hpp
+               ${SRC_COMMON_DIR}/stb_image_write.h
+               ${SRC_COMMON_DIR}/stb_image_write.cpp)
+
+
+set(SRC_InOneWeekend_DIR "${SRC_DIR}/InOneWeekend")
+
 add_executable(InOneWeekend
-               ${SRC_DIR}/main.cpp
-               ${SRC_DIR}/vec3.hpp
-               ${SRC_DIR}/ray.hpp
-               ${SRC_DIR}/utility.hpp
-               ${SRC_DIR}/rt_math.hpp
-               ${SRC_DIR}/hittable.hpp
-               ${SRC_DIR}/hittable_list.hpp
-               ${SRC_DIR}/material.hpp
-               ${SRC_DIR}/sphere.hpp
-               ${SRC_DIR}/camera.hpp
-               ${SRC_DIR}/random_generator.hpp
-               ${SRC_DIR}/stb_image_write.cpp
-               ${SRC_DIR}/stb_image_write.h)
+               ${SRC_InOneWeekend_DIR}/main.cpp
+               ${SRC_InOneWeekend_DIR}/hittable.hpp
+               ${SRC_InOneWeekend_DIR}/hittable_list.hpp
+               ${SRC_InOneWeekend_DIR}/material.hpp
+               ${SRC_InOneWeekend_DIR}/sphere.hpp
+               ${SRC_COMMON})
 target_include_directories(InOneWeekend PRIVATE "${SRC_DIR}")
 target_compile_features(InOneWeekend PRIVATE cxx_std_20)
 #set_target_properties(InOneWeekend PROPERTIES LINK_FLAGS "/PROFILE")

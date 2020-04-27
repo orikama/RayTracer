@@ -1,10 +1,10 @@
 #pragma once
 
-#include <cmath>
 #include <random>
 
-#include "vec3.hpp"
-#include "utility.hpp"
+#include "common/rt_math.hpp"
+#include "common/vec3.hpp"
+
 
 namespace rt
 {

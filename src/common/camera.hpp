@@ -1,8 +1,8 @@
 #pragma once
 
-#include "rt_math.hpp"
-#include "vec3.hpp"
-#include "ray.hpp"
+#include "common/rt_math.hpp"
+#include "common/vec3.hpp"
+#include "common/ray.hpp"
 
 
 namespace rt

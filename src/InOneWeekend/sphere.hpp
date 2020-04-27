@@ -2,9 +2,10 @@
 
 #include <memory>
 
-#include "rt_math.hpp"
-#include "vec3.hpp"
-#include "ray.hpp"
+#include "common/rt_math.hpp"
+#include "common/vec3.hpp"
+#include "common/ray.hpp"
+
 #include "hittable.hpp"
 
 

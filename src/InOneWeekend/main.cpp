@@ -1,23 +1,24 @@
 #include <iostream>
 #include <cstdint>
-#include <cmath>
 #include <limits>
 #include <chrono>
 #include <memory>
 
-#include <stb_image_write.h>
-
-#include "vec3.hpp"
-#include "ray.hpp"
-#include "utility.hpp"
-#include "hittable_list.hpp"
-#include "sphere.hpp"
-#include "camera.hpp"
-#include "material.hpp"
-
 #include <thread>
 #include <vector>
 #include <mutex>
+
+#include "common/stb_image_write.h"
+
+#include "common/vec3.hpp"
+#include "common/ray.hpp"
+#include "common/utility.hpp"
+#include "common/camera.hpp"
+
+#include "hittable_list.hpp"
+#include "sphere.hpp"
+#include "material.hpp"
+
 
 const int g_ImageWidth = 400;
 const int g_ImageHeight = 200;

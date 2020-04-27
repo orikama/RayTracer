@@ -2,8 +2,8 @@
 
 #include <memory>
 
-#include "vec3.hpp"
-#include "ray.hpp"
+#include "common/vec3.hpp"
+#include "common/ray.hpp"
 
 
 namespace rt
