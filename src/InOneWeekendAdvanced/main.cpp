@@ -222,8 +222,8 @@ int main()
 
     rt::window w("LOL", 800, 400);
 
-    while (w.pollEvents()) {
-
+    while (w.ShouldClose() == false) {
+        w.PollEvents();
     }
 
     return 0;
