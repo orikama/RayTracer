@@ -12,75 +12,75 @@ namespace rt
 class window
 {
 public:
-    window(const char* title, int width, int height);
+    using DrawCallback = void(*)(int width, int height, unsigned char* buffer, int frame_count);
+
+    window(const char* title, int width, int height, DrawCallback drawToBuffer);
     ~window();
 
-    void PollEvents();
-    bool ShouldClose();
+    void PollEvents() const;
+    bool ShouldClose() const;
 
 private:
     static LRESULT CALLBACK WindowProc(HWND windowHandle, UINT message, WPARAM wParam, LPARAM lParam);
     LRESULT HandleMessage(UINT message, WPARAM wParam, LPARAM lParam);
 
-    void WindowResize(int width, int height);
-    void WindowUpdate(HDC deviceContext, RECT* windowRect, int x, int y, int width, int height);
+    void CreateBuffer(const int width, const int height);
+    void CopyBufferToWindow(HDC deviceContext) const;
 
     void window::RenderGradient();
+
 
     HWND m_windowHandle;
     int m_windowWidth;
     int m_windowHeight;
     bool m_windowShouldClose;
 
+    int m_windowClientWidth;
+    int m_windowClientHeight;
+
     BITMAPINFO m_bitmapInfo;
-    void* m_bitmapMemory = NULL;
+    unsigned char* m_bitmapMemory;
     int m_bitmapWidth;
     int m_bitmapHeight;
+
+    DrawCallback m_drawToBuffer;
 };
 
 
-window::window(const char* title, int width, int height)
+window::window(const char* title, int width, int height, DrawCallback drawToBuffer)
     : m_windowShouldClose(false)
-    , m_windowWidth(width)
-    , m_windowHeight(height)
+    , m_windowClientWidth(width)
+    , m_windowClientHeight(height)
+    , m_drawToBuffer(drawToBuffer)
 {
     HINSTANCE hInst = GetModuleHandleA(NULL);
     assert(hInst != NULL);
-
-    //GetClassInfo(hInst, "Window", &winClass);
 
     WNDCLASS winClass = {};
     winClass.hInstance = hInst;
     winClass.lpszClassName = "WindowClass";
     winClass.lpfnWndProc = window::WindowProc;
-    winClass.style = CS_OWNDC | CS_HREDRAW | CS_VREDRAW;
+    winClass.style = CS_HREDRAW | CS_VREDRAW;
     //winClass.hbrBackground = (HBRUSH)(COLOR_WINDOW + 1);
     //winClass.hCursor = LoadCursor(NULL, IDC_ARROW);
     
     auto error = RegisterClassA(&winClass);
     assert(error != 0);
 
-    m_windowHandle = CreateWindowExA(0,
-                                     "WindowClass",
-                                     title,
+    RECT rect = { 0, 0, width, height };
+    AdjustWindowRect(&rect, WS_OVERLAPPEDWINDOW, FALSE);
+    m_windowWidth = rect.right - rect.left;
+    m_windowHeight = rect.bottom - rect.top;
+
+    m_windowHandle = CreateWindowExA(0, "WindowClass", title,
                                      WS_VISIBLE | WS_OVERLAPPEDWINDOW,
                                      CW_USEDEFAULT, CW_USEDEFAULT,
                                      m_windowWidth, m_windowHeight,
                                      NULL, NULL,
-                                     hInst,
-                                     this);
+                                     hInst, this);
     assert(m_windowHandle != NULL);
-
-
-    m_bitmapInfo.bmiHeader.biSize = sizeof(m_bitmapInfo.bmiHeader);
-    m_bitmapInfo.bmiHeader.biPlanes = 1;
-    m_bitmapInfo.bmiHeader.biBitCount = 32;
-    m_bitmapInfo.bmiHeader.biCompression = BI_RGB;
-    m_bitmapInfo.bmiHeader.biSizeImage = 0;
-    m_bitmapInfo.bmiHeader.biXPelsPerMeter = 0;
-    m_bitmapInfo.bmiHeader.biYPelsPerMeter = 0;
-    m_bitmapInfo.bmiHeader.biClrUsed = 0;
-    m_bitmapInfo.bmiHeader.biClrImportant = 0;
+    
+    CreateBuffer(width, height);
 }
 
 window::~window()
@@ -88,25 +88,27 @@ window::~window()
     m_windowShouldClose = true;
     if (m_windowHandle)
         DeleteObject(m_windowHandle);
+    if (m_bitmapMemory)
+        VirtualFree(m_bitmapMemory, 0, MEM_RELEASE);
 }
 
 
-bool window::ShouldClose()
+bool window::ShouldClose() const
 {
     return m_windowShouldClose;
 }
 
-void window::PollEvents()
+void window::PollEvents() const
 {
     MSG message;
-    //if (GetMessageA(&message, m_windowHandle, 0, 0) > 0) {
     while(PeekMessageA(&message, m_windowHandle, 0, 0, PM_REMOVE)) {
         TranslateMessage(&message);
         DispatchMessageA(&message);
     }
 
-    RenderGradient();
     InvalidateRect(m_windowHandle, NULL, FALSE);
+    UpdateWindow(m_windowHandle);
+
     /*HDC hdc = GetDC(m_windowHandle);
     RECT clientRect;
     GetClientRect(m_windowHandle, &clientRect);
@@ -142,19 +144,15 @@ LRESULT window::HandleMessage(UINT message, WPARAM wParam, LPARAM lParam)
     LRESULT result = 0;
 
     switch (message) {
-    case WM_ACTIVATEAPP:
-        {
-            OutputDebugStringA("WM_ACTIVATEAPP\n");
-        }
-        break;
-
     case WM_SIZE:
         {
-            RECT clientRect;
-            GetClientRect(m_windowHandle, &clientRect);
-            int width = clientRect.right - clientRect.left;
-            int height = clientRect.bottom - clientRect.top;
-            WindowResize(width, height);
+            RECT rect;
+            GetWindowRect(m_windowHandle, &rect);
+            m_windowWidth = rect.right - rect.left;
+            m_windowHeight = rect.bottom - rect.top;
+            GetClientRect(m_windowHandle, &rect);
+            m_windowClientWidth = rect.right - rect.left;
+            m_windowClientHeight = rect.bottom - rect.top;
 
             OutputDebugStringA("WM_SIZE\n");
         }
@@ -162,21 +160,29 @@ LRESULT window::HandleMessage(UINT message, WPARAM wParam, LPARAM lParam)
 
     case WM_PAINT:
         {
-            OutputDebugStringA("WM_PAINT\n");
+            static int frame_count = 0;
 
             PAINTSTRUCT ps;
             HDC hdc = BeginPaint(m_windowHandle, &ps);
 
-            int x = ps.rcPaint.left;
-            int y = ps.rcPaint.top;
-            int width = ps.rcPaint.right - x;
-            int height = ps.rcPaint.bottom - y;
+            //RenderGradient();
+            m_drawToBuffer(m_bitmapWidth, m_bitmapHeight, m_bitmapMemory, frame_count++);
+            CopyBufferToWindow(hdc);
 
-            RECT clientRect;
-            GetClientRect(m_windowHandle, &clientRect);
-            WindowUpdate(hdc, &clientRect, x, y, width, height);
+            static char s_Buffer[200];
+            sprintf_s(s_Buffer, sizeof(s_Buffer), "frames %i\n", frame_count);
+            RECT textRect;
+            textRect.left = 5;
+            textRect.top = 5;
+            textRect.right = 500;
+            textRect.bottom = 30;
+            //SetTextColor(hdc, 0x00000080);
+            SetBkMode(hdc, TRANSPARENT);
+            DrawTextA(hdc, s_Buffer, (int)strlen(s_Buffer), &textRect, DT_NOCLIP | DT_LEFT | DT_TOP);
 
             EndPaint(m_windowHandle, &ps);
+
+            OutputDebugStringA("WM_PAINT\n");
         }
         break;
 
@@ -189,14 +195,6 @@ LRESULT window::HandleMessage(UINT message, WPARAM wParam, LPARAM lParam)
         }
         break;
 
-        /*case WM_DESTROY:
-            {
-                OutputDebugStringA("WM_DESTROY\n");
-                PostQuitMessage(0);
-                m_windowShouldClose = true;
-            }
-            break;*/
-
     default:
         {
             result = DefWindowProcA(m_windowHandle, message, wParam, lParam);
@@ -208,33 +206,33 @@ LRESULT window::HandleMessage(UINT message, WPARAM wParam, LPARAM lParam)
 }
 
 
-void window::WindowResize(int width, int height)
+void window::CreateBuffer(const int width, const int height)
 {
-    if (m_bitmapMemory)
-        VirtualFree(m_bitmapMemory, 0, MEM_RELEASE);
-
     m_bitmapWidth = width;
     m_bitmapHeight = height;
 
+    m_bitmapInfo.bmiHeader.biSize = sizeof(m_bitmapInfo.bmiHeader);
     m_bitmapInfo.bmiHeader.biWidth = width;
-    m_bitmapInfo.bmiHeader.biHeight = height;
+    m_bitmapInfo.bmiHeader.biHeight = height;  // top-down, meaning the first byte of the image is top-left pixel
+    m_bitmapInfo.bmiHeader.biPlanes = 1;
+    m_bitmapInfo.bmiHeader.biBitCount = 32;
+    m_bitmapInfo.bmiHeader.biCompression = BI_RGB;
+    m_bitmapInfo.bmiHeader.biSizeImage = 0;
+    m_bitmapInfo.bmiHeader.biXPelsPerMeter = 0;
+    m_bitmapInfo.bmiHeader.biYPelsPerMeter = 0;
+    m_bitmapInfo.bmiHeader.biClrUsed = 0;
+    m_bitmapInfo.bmiHeader.biClrImportant = 0;
 
     const int BytesPerPixel = 4;
     const int BitmapMemorySize = width * height * BytesPerPixel;
-    m_bitmapMemory = VirtualAlloc(NULL, BitmapMemorySize, MEM_COMMIT, PAGE_READWRITE);
-
-    //RenderGradient();
+    m_bitmapMemory = (unsigned char*)VirtualAlloc(NULL, BitmapMemorySize, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE);
 }
 
-void window::WindowUpdate(HDC deviceContext, RECT* windowRect, int x, int y, int width, int height)
+void window::CopyBufferToWindow(HDC deviceContext) const
 {
-    int windowWidth = windowRect->right - windowRect->left;
-    int windowHeight = windowRect->bottom - windowRect->top;
     StretchDIBits(deviceContext,
-                  /*x, y, width, height,
-                  x, y, width, height,*/
+                  0, 0, m_windowClientWidth, m_windowClientHeight,
                   0, 0, m_bitmapWidth, m_bitmapHeight,
-                  0, 0, windowWidth, windowHeight,
                   m_bitmapMemory,
                   &m_bitmapInfo,
                   DIB_RGB_COLORS, SRCCOPY);

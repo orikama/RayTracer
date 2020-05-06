@@ -1,14 +1,12 @@
 #include <iostream>
 #include <cstdint>
 #include <limits>
-#include <chrono>
 #include <memory>
 
 #include <thread>
 #include <vector>
 #include <mutex>
 
-#include "common/stb_image_write.h"
 
 #include "common/vec3.hpp"
 #include "common/ray.hpp"
@@ -19,44 +17,47 @@
 #include "sphere.hpp"
 #include "material.hpp"
 
+#include "window.hpp"
 
-const int g_ImageWidth = 400;
-const int g_ImageHeight = 200;
-const int g_Channels = 3;
-
-const int g_SamplesPerPixel = 50;
-const int g_MaxDepth = 50;
-
-const int g_NumThreads = 4;
 
 using fp_type = double;
 
+const int g_WindowWidth = 800;
+const int g_WindowHeight = 400;
+//const int g_Channels = 3;
 
-class safe_cout
-{
-public:
-    safe_cout()
-    {
-        pixels_ready = 0;
-    }
+const int g_SamplesPerPixel = 2;
+const int g_MaxDepth = 10;
 
-    void update_thread(int thread_index)
-    {
-        std::lock_guard lock(m);
+const int g_NumThreads = 4;
 
-        pixels_ready += 400 + thread_index * 10;
 
-        std::cout << '\r' << std::flush;
-        std::cout << pixels_ready << '/' << g_ImageHeight * g_ImageWidth;
-        std::cout.flush();
-    }
 
-private:
-    int pixels_ready;
-    std::mutex m;
-};
+//class safe_cout
+//{
+//public:
+//    safe_cout()
+//    {
+//        pixels_ready = 0;
+//    }
+//
+//    void update_thread(int thread_index)
+//    {
+//        std::lock_guard lock(m);
+//
+//        pixels_ready += 400 + thread_index * 10;
+//
+//        std::cout << '\r' << std::flush;
+//        std::cout << pixels_ready << '/' << g_WindowWidth * g_WindowHeight;
+//        std::cout.flush();
+//    }
+//
+//private:
+//    int pixels_ready;
+//    std::mutex m;
+//};
 
-safe_cout g_Info;
+//safe_cout g_Info;
 
 
 rt::hittable_list<fp_type> random_scene()
@@ -146,81 +147,99 @@ rt::vec3<fp_type> ray_color(const rt::ray<fp_type>& r, const rt::hittable<fp_typ
 
 
 // TODO: random generator is not thread safe
-void render(int shift, rt::vec3<uint8_t>* img, rt::hittable_list<fp_type>& world, rt::camera<fp_type>& cam)
+void render(int shift, rt::hittable_list<fp_type>& world, rt::camera<fp_type>& cam,
+            uint8_t* buffer, int rowStart, int rowEnd, int columnStart, int columnEnd,
+            int frame_count)
 {
-    int index = 1;
-    for (int j = g_ImageHeight - 1; j >= 0; --j) {
-        //std::cout << "\rScanlines remaining: " << j << ' ' << std::flush;
+    const fp_type lerpFac = fp_type(frame_count) / (frame_count + 1);
 
-        for (int i = shift; i < g_ImageWidth; i += g_NumThreads) {
+    //int index = 1;
+    //for (int j = rowEnd - 1; j >= rowStart; --j) {
+        //for (int i = shift; i < columnEnd; i += g_NumThreads) {
+    for (int j = rowStart; j < rowEnd - 1; ++j) {
+        for (int i = shift; i < columnEnd; i += g_NumThreads) {
             rt::vec3<fp_type> color(0, 0, 0);
 
             for (int s = 0; s < g_SamplesPerPixel; ++s) {
-                fp_type v = fp_type(j + rt::s_random_gen()) / g_ImageHeight;
-                fp_type u = fp_type(i + rt::s_random_gen()) / g_ImageWidth;
+                fp_type v = fp_type(j + rt::s_random_gen()) / g_WindowHeight;
+                fp_type u = fp_type(i + rt::s_random_gen()) / g_WindowWidth;
 
                 auto r = cam.get_ray(u, v);
                 color += ray_color(r, world, g_MaxDepth);
             }
 
+            int index = (j * g_WindowWidth + i) * 4;
+
             color /= g_SamplesPerPixel;
+            color = rt::vector_sqrt(color);
+            //color *= static_cast<fp_type>(255.999);
 
-            //img[index++] = rt::vector_sqrt(color) * 255.999;
-            img[j * g_ImageWidth + i] = rt::vector_sqrt(color) * static_cast<fp_type>(255.999);
+            rt::vec3<fp_type> prev(buffer[index], buffer[index + 1], buffer[index + 2]);
+            prev /= static_cast<fp_type>(255.999);
+            color = (prev * lerpFac + color * (1 - lerpFac)) * static_cast<fp_type>(255.999);
 
-            ++index;
+            buffer[index] = color.x;
+            buffer[index + 1] = color.y;
+            buffer[index + 2] = color.z;
+
+
+            /*col *= 1.0f / float(DO_SAMPLES_PER_PIXEL);
+            col = float3(sqrtf(col.x), sqrtf(col.y), sqrtf(col.z));
+
+            float3 prev(backbuffer[0], backbuffer[1], backbuffer[2]);
+            col = prev * lerpFac + col * (1 - lerpFac);
+            backbuffer[0] = col.x;
+            backbuffer[1] = col.y;
+            backbuffer[2] = col.z;
+            backbuffer += 4;*/
+            /*++index;
             if (index == 400 + shift * 10) {
                 index = 0;
                 g_Info.update_thread(shift);
-            }
+            }*/
         }
     }
 }
 
-#include "window.hpp"
+constexpr auto look_from = rt::vec3<fp_type>(13.0, 2.0, 3.0);
+constexpr auto look_at = rt::vec3<fp_type>(0.0, 0.0, 0.0);
+constexpr auto up = rt::vec3<fp_type>(0.0, 1.0, 0.0);
+const auto dist_to_focus = static_cast<fp_type>(10.0);
+const auto aperture = static_cast<fp_type>(0.1);
+const auto aspect_ratio = fp_type(g_WindowWidth) / g_WindowHeight;
 
-int main()
+rt::hittable_list<fp_type> g_world;
+rt::camera<fp_type> g_cam(look_from, look_at, up,
+                          20.0, aspect_ratio,
+                          aperture, dist_to_focus);
+
+void draw_callback(int width, int height, uint8_t* buffer, int frame_count)
 {
-    /*constexpr auto look_from = rt::vec3<fp_type>(13.0, 2.0, 3.0);
-    constexpr auto look_at = rt::vec3<fp_type>(0.0, 0.0, 0.0);
-    constexpr auto up = rt::vec3<fp_type>(0.0, 1.0, 0.0);
-    const auto dist_to_focus = static_cast<fp_type>(10.0);
-    const auto aperture = static_cast<fp_type>(0.1);
-    const auto aspect_ratio = fp_type(g_ImageWidth) / g_ImageHeight;
-
-    rt::camera<fp_type> cam(look_from, look_at, up,
-                            20.0, aspect_ratio,
-                            aperture, dist_to_focus);
-
-    auto world = random_scene();
-
-    auto* img = new rt::vec3<uint8_t>[g_ImageHeight * g_ImageWidth];
-
-
-    std::cout << "Pixels: " << g_ImageHeight * g_ImageWidth << std::endl;
-
     std::vector<std::thread> threads;
 
-    auto start_t = std::chrono::high_resolution_clock::now();
-
     for (int i = 0; i < g_NumThreads; ++i)
-        threads.emplace_back(render, i, img, world, cam);
+        threads.emplace_back(render, i, g_world, g_cam, buffer, 0, height, 0, width, frame_count);
 
     for (auto& thread : threads)
         thread.join();
+}
 
 
-    auto end_t = std::chrono::high_resolution_clock::now();
-    std::cout << '\n' << std::chrono::duration_cast<std::chrono::milliseconds>(end_t - start_t).count() << '\n';
+int main()
+{
+    
 
-    stbi_flip_vertically_on_write(true);
-    stbi_write_png("image.png", g_ImageWidth, g_ImageHeight, g_Channels, img, g_ImageWidth * g_Channels);
+    //g_cam = 
+
+    g_world = random_scene();
+
+
+    //stbi_flip_vertically_on_write(true);
+    //stbi_write_png("image.png", g_ImageWidth, g_ImageHeight, g_Channels, img, g_ImageWidth * g_Channels);
 
     std::cout << "\nDone.\n";
 
-    delete[] img;*/
-
-    rt::window w("LOL", 800, 400);
+    rt::window w("LOL", g_WindowWidth, g_WindowHeight, draw_callback);
 
     while (w.ShouldClose() == false) {
         w.PollEvents();
