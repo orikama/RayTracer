@@ -22,12 +22,12 @@
 
 using fp_type = double;
 
-const int g_WindowWidth = 800;
-const int g_WindowHeight = 400;
+const int g_WindowWidth = 1200;
+const int g_WindowHeight = 600;
 //const int g_Channels = 3;
 
 const int g_SamplesPerPixel = 2;
-const int g_MaxDepth = 10;
+const int g_MaxDepth = 40;
 
 const int g_NumThreads = 4;
 
@@ -170,17 +170,17 @@ void render(int shift, rt::hittable_list<fp_type>& world, rt::camera<fp_type>& c
 
             int index = (j * g_WindowWidth + i) * 4;
 
-            color /= g_SamplesPerPixel;
+            color /= fp_type(g_SamplesPerPixel);
             color = rt::vector_sqrt(color);
             //color *= static_cast<fp_type>(255.999);
 
-            rt::vec3<fp_type> prev(buffer[index], buffer[index + 1], buffer[index + 2]);
+            rt::vec3<fp_type> prev(buffer[index + 2], buffer[index + 1], buffer[index]);
             prev /= static_cast<fp_type>(255.999);
             color = (prev * lerpFac + color * (1 - lerpFac)) * static_cast<fp_type>(255.999);
 
-            buffer[index] = color.x;
+            buffer[index + 2] = color.x;
             buffer[index + 1] = color.y;
-            buffer[index + 2] = color.z;
+            buffer[index] = color.z;
 
 
             /*col *= 1.0f / float(DO_SAMPLES_PER_PIXEL);
@@ -205,7 +205,7 @@ constexpr auto look_from = rt::vec3<fp_type>(13.0, 2.0, 3.0);
 constexpr auto look_at = rt::vec3<fp_type>(0.0, 0.0, 0.0);
 constexpr auto up = rt::vec3<fp_type>(0.0, 1.0, 0.0);
 const auto dist_to_focus = static_cast<fp_type>(10.0);
-const auto aperture = static_cast<fp_type>(0.1);
+const auto aperture = static_cast<fp_type>(0.0);
 const auto aspect_ratio = fp_type(g_WindowWidth) / g_WindowHeight;
 
 rt::hittable_list<fp_type> g_world;
