@@ -41,7 +41,7 @@ public:
     {
         // NOTE: tuple/pair instead of vec3 ?
         auto rd = lens_radius * s_random_gen.random_vec3_in_unit_disk();
-        auto offset = u * rd.x + v * rd.y;
+        auto offset = u * rd.getX() + v * rd.getY();
 
         // NOTE: forgot to add offset to origin, gives interesting effect
         //return ray(origin, lower_left_corner + u * horizontal + v * vertical - origin - offset);

@@ -11,7 +11,7 @@
 namespace rt
 {
 
-static thread_local rt::random_generator<double, std::minstd_rand> s_random_gen;
+static thread_local rt::random_generator<float, std::minstd_rand> s_random_gen;
 
 
 

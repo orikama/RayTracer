@@ -10,6 +10,8 @@ set(SRC_COMMON_DIR "${SRC_DIR}/common")
 set(SRC_COMMON ${SRC_COMMON_DIR}/camera.hpp
                ${SRC_COMMON_DIR}/ray.hpp
                ${SRC_COMMON_DIR}/vec3.hpp
+               ${SRC_COMMON_DIR}/vec3_avx.hpp
+               ${SRC_COMMON_DIR}/vec3_t.hpp
                ${SRC_COMMON_DIR}/rt_math.hpp
                ${SRC_COMMON_DIR}/random_generator.hpp
                ${SRC_COMMON_DIR}/utility.hpp
@@ -28,6 +30,8 @@ add_executable(InOneWeekend
                ${SRC_COMMON})
 target_include_directories(InOneWeekend PRIVATE "${SRC_DIR}")
 target_compile_features(InOneWeekend PRIVATE cxx_std_20)
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /Gv /arch:AVX2")
+#set_target_properties(InOneWeekend PROPERTIES LINK_FLAGS "/PROFILE")
 #target_link_libraries(InOneWeekend PRIVATE OpenMP::OpenMP_CXX)
 
 

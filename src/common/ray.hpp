@@ -15,7 +15,7 @@ class ray
 
 public:
     ray() {}
-    ray(const vec3_fp& origin, vec3_fp& direction)
+    ray(const vec3_fp& origin, const vec3_fp& direction)
         : origin(origin), direction(direction)
     {}
 

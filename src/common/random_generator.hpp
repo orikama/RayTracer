@@ -18,7 +18,7 @@ class random_generator
     using fp_distribution = std::uniform_real_distribution<FloatType>;
 
 public:
-    explicit random_generator(Generator&& engine = Generator{ std::random_device{}() })
+    explicit random_generator(Generator&& engine = Generator{ 456/*std::random_device{}() */})
         : m_engine(std::move(engine))
         , m_distribution()
         , m_dist_0_2pi(0, std::numbers::pi_v<FloatType> * 2)
@@ -82,13 +82,13 @@ public:
 
     vec3<FloatType> random_vec3_lambertian()
     {
-        auto a = random_number(m_dist_0_2pi);
-        auto z = random_number(m_dist_minus1_1);
-        auto r = rt::sqrt(1 - z * z);
+        FloatType a = random_number(m_dist_0_2pi);
+        FloatType z = random_number(m_dist_minus1_1);
+        FloatType r = rt::sqrt(1 - z * z);
 
-        return vec3(r * rt::cos(a),
-                    r * rt::sin(a),
-                    z);
+        return vec3<FloatType>(r * rt::cos(a),
+                               r * rt::sin(a),
+                               z);
     }
 
     vec3<FloatType> random_vec3_in_unit_disk()

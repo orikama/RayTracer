@@ -20,10 +20,10 @@
 #include "window.hpp"
 
 
-using fp_type = double;
+using fp_type = float;
 
-const int g_WindowWidth = 1200;
-const int g_WindowHeight = 600;
+const int g_WindowWidth = 800;
+const int g_WindowHeight = 400;
 //const int g_Channels = 3;
 
 const int g_SamplesPerPixel = 2;
@@ -59,6 +59,8 @@ const int g_NumThreads = 4;
 
 //safe_cout g_Info;
 
+const int g_A = 4;
+const int g_B = 4;
 
 rt::hittable_list<fp_type> random_scene()
 {
@@ -73,8 +75,8 @@ rt::hittable_list<fp_type> random_scene()
                                                     std::make_shared<rt::lambertian<fp_type>>(rt::vec3<fp_type>(0.5, 0.5, 0.5))));
 
     int i = 1;
-    for (int a = -11; a < 11; ++a) {
-        for (int b = -11; b < 11; ++b) {
+    for (int a = -g_A; a < g_A; ++a) {
+        for (int b = -g_B; b < g_B; ++b) {
             fp_type choose_material = random_gen();
             rt::vec3<fp_type> center(a + 0.9 * random_gen(), 0.2, b + 0.9 * random_gen());
 
@@ -140,9 +142,9 @@ rt::vec3<fp_type> ray_color(const rt::ray<fp_type>& r, const rt::hittable<fp_typ
     }
 
     auto unit_direction = rt::unit_vector(r.direction);
-    fp_type t = 0.5 * (unit_direction.y + 1);
+    fp_type t = fp_type(0.5) * (unit_direction.getY() + 1);
 
-    return (1 - t) * rt::vec3<fp_type>(1, 1, 1) + t * rt::vec3<fp_type>(0.5, 0.7, 1.0);
+    return rt::lerp(rt::vec3<fp_type>(1), rt::vec3<fp_type>(0.5, 0.7, 1.0), t);
 }
 
 
@@ -178,20 +180,14 @@ void render(int shift, rt::hittable_list<fp_type>& world, rt::camera<fp_type>& c
             prev /= static_cast<fp_type>(255.999);
             color = (prev * lerpFac + color * (1 - lerpFac)) * static_cast<fp_type>(255.999);
 
-            buffer[index + 2] = color.x;
+            /*buffer[index + 2] = color.x;
             buffer[index + 1] = color.y;
-            buffer[index] = color.z;
+            buffer[index] = color.z;*/
 
+            buffer[index + 2] = color.getX();
+            buffer[index + 1] = color.getY();
+            buffer[index] = color.getZ();
 
-            /*col *= 1.0f / float(DO_SAMPLES_PER_PIXEL);
-            col = float3(sqrtf(col.x), sqrtf(col.y), sqrtf(col.z));
-
-            float3 prev(backbuffer[0], backbuffer[1], backbuffer[2]);
-            col = prev * lerpFac + col * (1 - lerpFac);
-            backbuffer[0] = col.x;
-            backbuffer[1] = col.y;
-            backbuffer[2] = col.z;
-            backbuffer += 4;*/
             /*++index;
             if (index == 400 + shift * 10) {
                 index = 0;
@@ -201,9 +197,9 @@ void render(int shift, rt::hittable_list<fp_type>& world, rt::camera<fp_type>& c
     }
 }
 
-constexpr auto look_from = rt::vec3<fp_type>(13.0, 2.0, 3.0);
-constexpr auto look_at = rt::vec3<fp_type>(0.0, 0.0, 0.0);
-constexpr auto up = rt::vec3<fp_type>(0.0, 1.0, 0.0);
+auto look_from = rt::vec3<fp_type>(13.0, 2.0, 3.0);
+auto look_at = rt::vec3<fp_type>(0.0, 0.0, 0.0);
+auto up = rt::vec3<fp_type>(0.0, 1.0, 0.0);
 const auto dist_to_focus = static_cast<fp_type>(10.0);
 const auto aperture = static_cast<fp_type>(0.0);
 const auto aspect_ratio = fp_type(g_WindowWidth) / g_WindowHeight;

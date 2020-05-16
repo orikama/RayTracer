@@ -47,11 +47,11 @@ public:
     virtual bool scatter(const ray_type& ray_in, const hit_record_type& record, vec3_fp& attenuation, ray_type& scattered) const override
     {
         // NOTE: diffuse reflection
-        //auto target = record.p + record.normal + random_gen.random_vec3_in_unit_sphere();
+        //auto scatter_direction = record.normal + s_random_gen.random_vec3_in_unit_sphere();
         // NOTE: hemispherical scattering
-        //auto target = record.p + random_gen.random_vec3_in_hemisphere(record.normal);
+        //auto scatter_direction = s_random_gen.random_vec3_in_hemisphere(record.normal);
         // NOTE: lambertian reflection
-        //auto target = record.p + record.normal + rt::s_random_gen.random_vec3_lambertian();
+        //auto scatter_direction = record.p + record.normal + s_random_gen.random_vec3_lambertian();
 
         auto scatter_direction = record.normal + s_random_gen.random_vec3_lambertian();
         scattered = ray_type(record.p, scatter_direction);
@@ -111,7 +111,7 @@ public:
 
     virtual bool scatter(const ray_type& ray_in, const hit_record_type& record, vec3_fp& attenuation, ray_type& scattered) const override
     {
-        attenuation = vec3_fp(1, 1, 1);  // glass surface absorbs nothing
+        attenuation = vec3_fp(1);  // glass surface absorbs nothing
         FloatType etai_over_etat = record.front_face ? (1 / refraction_index) : refraction_index;
 
         auto unit_direction = unit_vector(ray_in.direction);
